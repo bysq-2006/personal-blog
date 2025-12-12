@@ -8,6 +8,9 @@ export default defineUserConfig({
   lang: 'zh-CN',
   title: '白银三清的博客',
   description: '',
+  head: [
+    ['link', { rel: 'icon', href: '/favicon.ico' }]
+  ],
 
   locales: {
     '/': {
@@ -59,23 +62,6 @@ export default defineUserConfig({
         !frontmatter.home &&
         frontmatter.excerpt !== false &&
         typeof frontmatter.excerpt !== 'string',
-
-      category: [
-        {
-          key: 'category',
-          getter: (page) => page.frontmatter.category || [],
-          layout: 'Category',
-          itemLayout: 'Category',
-          frontmatter: () => ({
-            title: 'Categories',
-            sidebar: false,
-          }),
-          itemFrontmatter: (name) => ({
-            title: `Category ${name}`,
-            sidebar: false,
-          }),
-        },
-      ],
 
       type: [
         {

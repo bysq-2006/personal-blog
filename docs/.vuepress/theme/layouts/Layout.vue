@@ -4,6 +4,7 @@
       <div class="navbar-inner">
         <div class="navbar-brand">
           <router-link to="/" class="brand-link">
+            <img src="/favicon.ico" alt="Logo" class="brand-logo" />
             <span class="site-name">{{ $site.title }}</span>
           </router-link>
         </div>
@@ -12,7 +13,6 @@
           <nav class="navbar-nav">
             <router-link to="/" class="nav-link">首页</router-link>
             <router-link to="/article/" class="nav-link">文章</router-link>
-            <router-link to="/category/" class="nav-link">分类</router-link>
           </nav>
           <button @click="toggleDarkMode" class="dark-mode-toggle" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
             {{ isDark ? '暗' : '亮' }}
@@ -23,28 +23,7 @@
 
     <slot name="page">
       <div class="page-wrapper">
-        <aside class="sidebar" v-if="headers.length > 0">
-          <div class="sidebar-content">
-            <p class="sidebar-title">目录</p>
-            <div class="sidebar-toc">
-              <template v-for="header in headers" :key="header.slug">
-                <details v-if="header.level === 2" class="toc-h2">
-                  <summary class="toc-summary">
-                    <a :href="'#' + header.slug" class="sidebar-link">{{ header.title }}</a>
-                  </summary>
-                  <ul v-if="header.children && header.children.length > 0" class="toc-children">
-                    <li v-for="child in header.children" :key="child.slug" class="toc-h3">
-                      <a :href="'#' + child.slug" class="sidebar-link">{{ child.title }}</a>
-                    </li>
-                  </ul>
-                </details>
-                <div v-else-if="header.level === 3 && !header.parent" class="toc-h3-standalone">
-                  <a :href="'#' + header.slug" class="sidebar-link">{{ header.title }}</a>
-                </div>
-              </template>
-            </div>
-          </div>
-        </aside>
+        <SidebarToc :headers="headers" />
         <main class="page" :class="{ 'has-sidebar': headers.length > 0 }">
           <div class="theme-default-content">
             <Content />
@@ -64,6 +43,7 @@
 <script>
 import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
 import { usePageData } from 'vuepress/client'
+import SidebarToc from '../../components/SidebarToc.vue'
 
 // 异步加载搜索框组件，避免 SSR 问题
 const SearchBox = defineAsyncComponent(() =>
@@ -76,6 +56,7 @@ export default {
   name: 'Layout',
   components: {
     SearchBox,
+    SidebarToc
   },
   setup() {
     const isDark = ref(false)
@@ -124,7 +105,7 @@ export default {
   --c-text: #2c3e50;
   --c-text-light: #3a5169;
   --c-text-lighter: #4e6e8e;
-  --c-bg: #ffffff;
+  --c-bg: #fafafa;
   --c-bg-light: #f3f4f5;
   --c-bg-lighter: #eeeeee;
   --c-border: #eaecef;
@@ -144,6 +125,12 @@ html.dark {
   --c-bg-lighter: #373e47;
   --c-border: #444c56;
   --c-border-dark: #535f6e;
+  /* 回到顶部按钮暗色模式 */
+  --back-to-top-c-bg: var(--c-bg-light);
+  --back-to-top-c-accent-bg: var(--c-brand);
+  --back-to-top-c-shadow: rgba(0, 0, 0, 0.3);
+  --back-to-top-c-accent-hover: var(--c-brand-light);
+  --back-to-top-c-icon: var(--c-text);
 }
 
 body {
@@ -231,6 +218,13 @@ html.dark .search-box .suggestions .suggestion.focused {
   color: var(--c-text);
 }
 
+.brand-logo {
+  height: 2rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  transform: translateY(-0.24rem);
+}
+
 .navbar-items {
   display: flex;
   align-items: center;
@@ -281,121 +275,6 @@ html.dark .search-box .suggestions .suggestion.focused {
   min-height: calc(100vh - var(--navbar-height));
 }
 
-.sidebar {
-  position: fixed;
-  top: var(--navbar-height);
-  left: 0;
-  width: 16rem;
-  height: calc(100vh - var(--navbar-height));
-  overflow-y: auto;
-  border-right: 1px solid var(--c-border);
-  background-color: var(--c-bg);
-  padding: 1.5rem;
-  box-sizing: border-box;
-  transition: all 0.3s;
-}
-
-.sidebar-content {
-  position: sticky;
-  top: 0;
-}
-
-.sidebar-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--c-text-lighter);
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-}
-
-.sidebar-toc {
-  margin: 0;
-}
-
-.toc-h2 {
-  margin: 0;
-}
-
-.toc-summary {
-  cursor: pointer;
-  list-style: none;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  user-select: none;
-}
-
-.toc-summary::-webkit-details-marker,
-.toc-summary::marker {
-  display: none;
-}
-
-.toc-summary::before {
-  content: "▶";
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.75rem;
-  color: var(--c-text-quote);
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-
-details[open]>.toc-summary::before {
-  transform: rotate(90deg);
-}
-
-.toc-children {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.toc-h3 {
-  margin: 0;
-}
-
-.toc-h3-standalone {
-  margin: 0;
-}
-
-.sidebar-link {
-  display: block;
-  padding: 0.35rem 0;
-  font-size: 0.95rem;
-  color: var(--c-text);
-  line-height: 1.4;
-  border-left: 2px solid transparent;
-  padding-left: 0.5rem;
-  text-decoration: none;
-  transition: color 0.2s, border-color 0.2s;
-  flex-grow: 1;
-}
-
-.sidebar-link:hover {
-  color: var(--c-brand);
-  border-left-color: var(--c-brand);
-}
-
-/* H3 样式 - 增加缩进 */
-.toc-children .sidebar-link {
-  padding-left: 2rem;
-  font-size: 0.9rem;
-  color: var(--c-text-light);
-}
-
-.toc-children .sidebar-link:hover {
-  color: var(--c-brand);
-}
-
-/* 独立的 H3 */
-.toc-h3-standalone .sidebar-link {
-  padding-left: 2rem;
-  font-size: 0.9rem;
-}
-
 .page.has-sidebar {
   margin-left: 16rem;
   padding-top: 0;
@@ -418,10 +297,6 @@ details[open]>.toc-summary::before {
 
 @media (max-width: 719px) {
   .navbar-nav {
-    display: none;
-  }
-
-  .sidebar {
     display: none;
   }
 

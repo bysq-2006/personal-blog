@@ -33,17 +33,17 @@ defineProps({
         <span v-if="info.author" class="author">Author: {{ info.author }}</span>
 
         <span v-if="info.date && !isTimeline" class="date"
-          >Date: {{ new Date(info.date).toLocaleDateString() }}</span
+          >日期: {{ new Date(info.date).toLocaleDateString() }}</span
         >
 
         <span v-if="info.category" class="category"
-          >Category: {{ info.category.join(', ') }}</span
+          >分类: {{ info.category.join(', ') }}</span
         >
 
-        <span v-if="info.tag" class="tag">Tag: {{ info.tag.join(', ') }}</span>
+        <span v-if="info.tag" class="tag">标签: {{ info.tag.join(', ') }}</span>
       </div>
 
-      <div v-if="info.excerpt" class="excerpt" v-html="info.excerpt" />
+      <!-- <div v-if="info.excerpt" class="excerpt" v-html="info.excerpt" /> -->
     </article>
   </div>
 </template>
@@ -53,7 +53,6 @@ defineProps({
 
 .article-wrapper {
   @include mixins.content-wrapper;
-  padding-top: calc(var(--navbar-height) + 1rem) !important;
   text-align: center;
 }
 
@@ -132,5 +131,23 @@ defineProps({
       font-size: 1.15em;
     }
   }
+}
+
+/* 暗色模式适配 */
+html.dark .article {
+  border-color: var(--c-border);
+  color: var(--c-text);
+}
+
+html.dark .article .title {
+  color: var(--c-text);
+}
+
+html.dark .article .article-info span {
+  color: var(--c-text-light);
+}
+
+html.dark .article hr {
+  border-color: var(--c-border);
 }
 </style>
