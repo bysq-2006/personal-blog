@@ -1,39 +1,40 @@
 import { blogPlugin } from '@vuepress/plugin-blog'
-import { defaultTheme } from '@vuepress/theme-default'
+import { searchPlugin } from '@vuepress/plugin-search'
 import { defineUserConfig } from 'vuepress'
 import { viteBundler } from '@vuepress/bundler-vite'
+import customTheme from './theme/index.js'
 
 export default defineUserConfig({
-  lang: 'en-US',
+  lang: 'zh-CN',
+  title: '白银三清的博客',
+  description: '',
 
-  title: 'VuePress',
-  description: 'My first VuePress Site',
+  locales: {
+    '/': {
+      lang: 'zh-CN',
+      title: '白银三清的博客',
+      description: '我的个人博客',
+    },
+  },
 
-  theme: defaultTheme({
-    logo: 'https://vuejs.press/images/hero.png',
-
-    navbar: [
-      '/',
-      {
-        text: 'Article',
-        link: '/article/',
-      },
-      {
-        text: 'Category',
-        link: '/category/',
-      },
-      {
-        text: 'Tag',
-        link: '/tag/',
-      },
-      {
-        text: 'Timeline',
-        link: '/timeline/',
-      },
-    ],
+  theme: customTheme({
+    // 自定义主题配置
   }),
 
+  markdown: {
+    headers: {
+      level: [2, 3],
+    },
+  },
+
   plugins: [
+    searchPlugin({
+      locales: {
+        '/': {
+          placeholder: '搜索',
+        },
+      },
+    }),
     blogPlugin({
       // Only files under posts are articles
       filter: ({ filePathRelative }) =>
@@ -74,20 +75,6 @@ export default defineUserConfig({
             sidebar: false,
           }),
         },
-        {
-          key: 'tag',
-          getter: (page) => page.frontmatter.tag || [],
-          layout: 'Tag',
-          itemLayout: 'Tag',
-          frontmatter: () => ({
-            title: 'Tags',
-            sidebar: false,
-          }),
-          itemFrontmatter: (name) => ({
-            title: `Tag ${name}`,
-            sidebar: false,
-          }),
-        },
       ],
 
       type: [
@@ -117,20 +104,6 @@ export default defineUserConfig({
               new Date(pageA.frontmatter.date).getTime()
             )
           },
-        },
-        {
-          key: 'timeline',
-          // Only article with date should be added to timeline
-          filter: (page) => page.frontmatter.date instanceof Date,
-          // Sort pages with time
-          sorter: (pageA, pageB) =>
-            new Date(pageB.frontmatter.date).getTime() -
-            new Date(pageA.frontmatter.date).getTime(),
-          layout: 'Timeline',
-          frontmatter: () => ({
-            title: 'Timeline',
-            sidebar: false,
-          }),
         },
       ],
       hotReload: true,

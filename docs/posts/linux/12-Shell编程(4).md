@@ -1,3 +1,20 @@
+---
+date: 2024-12-12
+category:
+  - Linux
+  - Shell编程
+tag:
+  - Linux
+  - Shell
+  - 脚本编程
+  - 函数
+  - 模块化
+---
+
+# Linux Shell编程（4）- 函数与模块化
+
+> Linux Shell 编程中的函数定义、调用和脚本模块化。
+
 ## Shell编程（4）
 
 ### 1. 函数

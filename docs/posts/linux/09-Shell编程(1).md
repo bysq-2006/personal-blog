@@ -1,3 +1,19 @@
+---
+date: 2024-12-12
+category:
+  - Linux
+  - Shell编程
+tag:
+  - Linux
+  - Shell
+  - 脚本编程
+  - Bash
+---
+
+# Linux Shell编程（1）- 基本概念
+
+> Linux Shell 编程基础，包括脚本概念、变量、控制结构等。
+
 ## Shell编程
 
 ### 1. 基本概念

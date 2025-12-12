@@ -1,6 +1,6 @@
 <script setup>
 import { useBlogCategory } from '@vuepress/plugin-blog/client'
-import ParentLayout from '@vuepress/theme-default/layouts/Layout.vue'
+import ParentLayout from '../theme/layouts/Layout.vue'
 import { RouteLink, useRoutePath } from 'vuepress/client'
 import ArticleList from '../components/ArticleList.vue'
 

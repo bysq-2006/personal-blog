@@ -1,3 +1,20 @@
+---
+date: 2024-12-12
+category:
+  - Linux
+  - Shell编程
+tag:
+  - Linux
+  - Shell
+  - 脚本编程
+  - 运算符
+  - 变量
+---
+
+# Linux Shell编程（2）- 运算符与变量
+
+> Linux Shell 编程中的运算符、变量操作和表达式计算。
+
 ## Shell编程（2）
 
 ### 1. 运算符

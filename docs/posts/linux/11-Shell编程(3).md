@@ -1,3 +1,20 @@
+---
+date: 2024-12-12
+category:
+  - Linux
+  - Shell编程
+tag:
+  - Linux
+  - Shell
+  - 脚本编程
+  - 循环
+  - 控制结构
+---
+
+# Linux Shell编程（3）- 循环与控制结构
+
+> Linux Shell 编程中的循环语句和控制结构使用。
+
 ## Shell编程（3）
 
 ### 1. 循环

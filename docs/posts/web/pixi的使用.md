@@ -1,15 +1,25 @@
-## 本教程是对 https://pixijs.com/8.x/guides/concepts/scene-graph 的补充，补充易错和没讲到的地方详细请看链接。
+---
+date: 2024-12-12
+category:
+  - 前端开发
+  - JavaScript
+---
+
+# Pixi.js 使用教程
+
+本教程是对 Pixi.js 官方文档的补充，重点讲解易错点和未详细说明的地方。详细内容请参考 [官方文档](https://pixijs.com/8.x/guides/concepts/scene-graph)。
+
 ## 安装和初始化
 
-### 安装
-#### 不需要安装，直接在js里面引用
+## 安装
+### 不需要安装，直接在js里面引用
 
 ```html
 <script src="https://pixijs.download/release/pixi.min.js"></script>
 ```
 
-#### 但是，对于使用pixi的地方，必须可以使用await（也就是异步环境）
-##### 比如，模块
+### 但是，对于使用pixi的地方，必须可以使用await（也就是异步环境）
+#### 比如，模块
 <details>
   <summary>模块详细知识</summary>
   &nbsp&nbsp 1.独立作用域：变量不会泄露到全局环境<br>
@@ -20,7 +30,7 @@
 ```html
 <script type="module"></script>
 ```
-##### 或者，异步封装
+#### 或者，异步封装
 ```html
 <script>
   async function name(params) {
@@ -31,8 +41,8 @@
 
 
 ---
-### 初始化
-#### 创建应用实例
+## 初始化
+### 创建应用实例
 
 ```javascript
 // 创建一个PIXI应用实例
@@ -45,7 +55,7 @@ await app.init({ background: '#1099bb', resizeTo: window });
 document.body.appendChild(app.view);
 ```
 
-#### 基本配置选项
+### 基本配置选项
 
 ```javascript
 // 更多配置选项示例
@@ -58,8 +68,8 @@ await app.init({
 });
 ```
 
-### 设置高宽自适应
-#### 固定大小与自适应
+## 设置高宽自适应
+### 固定大小与自适应
 
 ```javascript
 // 手动处理窗口大小变化
@@ -76,11 +86,11 @@ app.ticker.add((ticker) => {
 });
 ```
 
-### 容器
+## 容器
 
 用来方便管理的，是一个树形结构.
 
-#### 容器定义
+### 容器定义
 
 ```javascript
 // 创建一个容器
@@ -95,9 +105,9 @@ app.stage.addChild(container);
 - 提供坐标系统的转换
 - 管理多个子元素作为一个整体
 
-### Graphics()的小坑
+## Graphics()的小坑
 
-#### 必须先绘制图形再设置样式
+### 必须先绘制图形再设置样式
 ```javascript
   // 比如
   const square = new Graphics()
@@ -105,7 +115,7 @@ app.stage.addChild(container);
   square.stroke({ width: 2, color: 0x000000 }) // 设置边框
   square.fill({ color: 0xffffff }) // 填充白色
 ```
-#### 错误示范
+### 错误示范
 ```javascript
   // 比如
   const square = new Graphics()
@@ -147,7 +157,7 @@ obj.pivot.set(50, 50)
 // 视觉效果：图形向左上方移动了 50 像素！
 ```
 
-### 二维仿射变换矩阵和worldTransform
+## 二维仿射变换矩阵和worldTransform
 
 #### worldTransform这个矩阵代表着当前这个图形的几乎所有坐标信息，考虑了锚点，缩放，旋转，位移叠加的效果，里面的数值可以理解为当前这个物体在相对于画布的坐标系下的数值
 
