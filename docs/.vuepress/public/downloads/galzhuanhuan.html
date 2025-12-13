@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脚本处理工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f7;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        .box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .box-header {
+            padding: 10px 15px;
+            background: #f0f0f0;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        textarea {
+            flex: 1;
+            border: none;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            font-family: Consolas, Monaco, "Courier New", monospace;
+        }
+
+        textarea:focus {
+            background-color: #fafafa;
+        }
+
+        .btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .box {
+                height: 50%;
+            }
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5vh auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .mapping-item {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .mapping-item input {
+            flex: 1;
+            padding: 5px;
+            margin: 0 5px;
+            font-size: 14px;
+        }
+
+        .mapping-item button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .text-mode {
+            display: none;
+        }
+
+        .text-mode textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <header>脚本格式化工具</header>
+    <div class="container">
+        <div class="box">
+            <div class="box-header">
+                <span>输入</span>
+                <div>
+                    <button class="btn" onclick="document.getElementById('input').value=''; process();">清空</button>
+                    <button class="btn" onclick="openModal()">编辑映射</button>
+                </div>
+            </div>
+            <textarea id="input" placeholder="在此粘贴原始文本..." oninput="process()"></textarea>
+        </div>
+        <div class="box">
+            <div class="box-header">
+                <span>输出</span>
+                <button class="btn" onclick="copyOutput()">复制结果</button>
+            </div>
+            <textarea id="output" readonly placeholder="处理结果将显示在这里..."></textarea>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>编辑人物映射</h2>
+            <button class="btn" id="toggleMode">切换到文本模式</button>
+            <div id="visualMode">
+                <div id="mappings"></div>
+                <button class="btn" id="addMapping">添加映射</button>
+            </div>
+            <div id="textMode" class="text-mode">
+                <textarea id="textMappings" placeholder="粘贴或编辑 JSON 格式的映射..."></textarea>
+            </div>
+            <button class="btn" id="saveMappings">保存</button>
+        </div>
+    </div>
+
+    <script>
+        // 从本地存储加载 figureMap
+        let figureMap = JSON.parse(localStorage.getItem('figureMap')) || {
+            "千早爱音": "changeFigure:mygo_avemujica_v6/anon/037_school_winter-2023_rip/model.json -left;",
+            "长崎素世": "changeFigure:mygo_avemujica_v6/soyo/039_school_winter-2023_rip/model.json -right;",
+            "椎名立希": "changeFigure:mygo_avemujica_v6/taki/040_school_winter-2023_rip/model.json -right;",
+            "高松灯": "changeFigure:mygo_avemujica_v6/tomoli/036_school_winter-2023_rip/model.json -left;",
+            "要乐奈": "changeFigure:mygo_avemujica_v6/rana/038_school_winter-2023_rip/model.json;",
+            "三角初华": "changeFigure:mygo_avemujica_v6/uika/337_casual-2023_nocap_rip/model.json -left;",
+            "Mortis": "changeFigure:Mortis/model.json -right;"
+        };
+
+        const suffix = " -fontSize=default -center;";
+
+        function process() {
+            const inputText = document.getElementById('input').value;
+            const lines = inputText.split('\n');
+            const outputLines = [];
+
+            for (let line of lines) {
+                // 如果是空行，直接保留空行，不处理
+                if (!line.trim()) {
+                    outputLines.push("");
+                    continue;
+                }
+
+                // 替换所有中文冒号为英文冒号
+                line = line.replace(/：/g, ':');
+
+                // 查找冒号位置（现在统一为英文冒号）
+                let idx = line.indexOf(':');
+
+                // 处理人名插入逻辑
+                if (idx !== -1) {
+                    const namePart = line.substring(0, idx).trim();
+                    
+                    // 排除特定人名
+                    if (namePart !== "千早爱音的妈妈" && namePart !== "千早爱音的爸爸") {
+                        // 处理复合人名 (A/B)
+                        const names = namePart.split('/');
+                        for (let name of names) {
+                            name = name.trim();
+                            if (figureMap[name]) {
+                                outputLines.push(figureMap[name]);
+                            }
+                        }
+                    }
+                }
+
+                // 添加后缀
+                // 去除行尾空白后再添加后缀，防止多余空格
+                outputLines.push(line.trimEnd() + suffix);
+            }
+
+            document.getElementById('output').value = outputLines.join('\n');
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            output.select();
+            document.execCommand('copy');
+            // 简单的反馈
+            const btn = document.querySelector('.box:last-child .btn');
+            const originalText = btn.innerText;
+            btn.innerText = "已复制!";
+            setTimeout(() => btn.innerText = originalText, 1000);
+        }
+
+        // 模态框相关函数
+        let isTextMode = false;
+
+        function openModal() {
+            const modal = document.getElementById('modal');
+            const toggleBtn = document.getElementById('toggleMode');
+            toggleBtn.innerText = '切换到文本模式';
+            isTextMode = false;
+            document.getElementById('visualMode').style.display = 'block';
+            document.getElementById('textMode').style.display = 'none';
+            loadVisualMode();
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function loadVisualMode() {
+            const mappingsDiv = document.getElementById('mappings');
+            mappingsDiv.innerHTML = '';
+            for (const [name, value] of Object.entries(figureMap)) {
+                addMappingItem(name, value);
+            }
+        }
+
+        function addMappingItem(name = '', value = '') {
+            const mappingsDiv = document.getElementById('mappings');
+            const item = document.createElement('div');
+            item.className = 'mapping-item';
+            item.innerHTML = `
+                <input type="text" placeholder="人名" value="${name}">
+                <input type="text" placeholder="指令" value="${value}">
+                <button onclick="this.parentElement.remove()">删除</button>
+            `;
+            mappingsDiv.appendChild(item);
+        }
+
+        function saveMappings() {
+            if (isTextMode) {
+                const text = document.getElementById('textMappings').value;
+                try {
+                    figureMap = JSON.parse(text);
+                } catch (e) {
+                    alert('JSON 格式错误，请检查！');
+                    return;
+                }
+            } else {
+                const items = document.querySelectorAll('.mapping-item');
+                const newMap = {};
+                items.forEach(item => {
+                    const inputs = item.querySelectorAll('input');
+                    const name = inputs[0].value.trim();
+                    const value = inputs[1].value.trim();
+                    if (name && value) {
+                        newMap[name] = value;
+                    }
+                });
+                figureMap = newMap;
+            }
+            // 保存到本地存储
+            localStorage.setItem('figureMap', JSON.stringify(figureMap));
+            closeModal();
+            process(); // 重新处理以反映更改
+        }
+
+        function toggleMode() {
+            isTextMode = !isTextMode;
+            const toggleBtn = document.getElementById('toggleMode');
+            const visualMode = document.getElementById('visualMode');
+            const textMode = document.getElementById('textMode');
+            if (isTextMode) {
+                toggleBtn.innerText = '切换到可视化模式';
+                visualMode.style.display = 'none';
+                textMode.style.display = 'block';
+                document.getElementById('textMappings').value = JSON.stringify(figureMap, null, 2);
+            } else {
+                toggleBtn.innerText = '切换到文本模式';
+                visualMode.style.display = 'block';
+                textMode.style.display = 'none';
+                loadVisualMode();
+            }
+        }
+
+        // 事件监听
+        document.getElementById('addMapping').onclick = () => addMappingItem();
+        document.getElementById('saveMappings').onclick = saveMappings;
+        document.getElementById('toggleMode').onclick = toggleMode;
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

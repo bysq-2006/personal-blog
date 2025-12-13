@@ -15,7 +15,9 @@
             <router-link to="/tools/" class="nav-link">工具</router-link>
           </nav>
           <button @click="toggleDarkMode" class="dark-mode-toggle" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
-            {{ isDark ? '暗' : '亮' }}
+            <transition name="icon-twist" mode="out-in">
+              <SvgIcon :name="isDark ? 'dark' : 'bright'" :key="isDark ? 'dark' : 'bright'" />
+            </transition>
           </button>
         </div>
       </div>
@@ -32,8 +34,6 @@
       </div>
     </slot>
 
-    <Home v-if="route.path === '/'" />
-
     <footer class="footer">
       <div class="footer-content">
         © {{ new Date().getFullYear() }} {{ $site.title }}. Powered by VuePress.
@@ -43,11 +43,11 @@
 </template>
 
 <script setup>
+import SvgIcon from '../components/SvgIcon.vue'
 import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
 import { usePageData } from 'vuepress/client'
 import { useRoute } from 'vue-router'
 import SidebarToc from '../components/SidebarToc.vue'
-import Home from '../components/home.vue'
 
 // 异步加载搜索框组件，避免 SSR 问题
 const SearchBox = defineAsyncComponent(() =>
@@ -90,31 +90,32 @@ onMounted(() => {
 
 <style>
 :root {
-  --c-brand: #3eaf7c;
-  --c-brand-light: #4abf8a;
-  --c-text: #2c3e50;
-  --c-text-light: #3a5169;
-  --c-text-lighter: #4e6e8e;
-  --c-bg: #fafafa;
-  --c-bg-light: #f3f4f5;
-  --c-bg-lighter: #eeeeee;
-  --c-border: #eaecef;
-  --c-border-dark: #dfe2e5;
+  /* 暖色调/米黄色系 */
+  --c-brand: #d97706;
+  --c-brand-light: #f59e0b;
+  --c-text: #433422;
+  --c-text-light: #6b5d52;
+  --c-text-lighter: #9ca3af;
+  --c-bg: #fffdf7;
+  --c-bg-light: #f7f2e6;
+  --c-bg-lighter: #efe8d8;
+  --c-border: #e8e1d5;
+  --c-border-dark: #d6cfc2;
 
   --navbar-height: 3.6rem;
 }
 
 html.dark {
-  --c-brand: #5bd0ff;
-  --c-brand-light: #7ee0ff;
-  --c-text: #ebedf3;
-  --c-text-light: #d7e0f2;
-  --c-text-lighter: #b3c0d9;
-  --c-bg: #111927;
-  --c-bg-light: #1c2437;
-  --c-bg-lighter: #232b3f;
-  --c-border: #2b3152;
-  --c-border-dark: #3b4270;
+  --c-brand: #fbbf24;
+  --c-brand-light: #fcd34d;
+  --c-text: #e7e5e4;
+  --c-text-light: #a8a29e;
+  --c-text-lighter: #78716c;
+  --c-bg: #1c1917;
+  --c-bg-light: #292524;
+  --c-bg-lighter: #44403c;
+  --c-border: #44403c;
+  --c-border-dark: #57534e;
   /* 回到顶部按钮暗色模式 */
   --back-to-top-c-bg: var(--c-bg-light);
   --back-to-top-c-accent-bg: var(--c-brand);
@@ -245,6 +246,22 @@ html.dark .search-box .suggestions .suggestion.focused {
 
 .dark-mode-toggle:hover {
   transform: scale(1.1);
+}
+
+.icon-twist-enter-active, .icon-twist-leave-active {
+  transition: all 0.2s cubic-bezier(.68,-0.55,.27,1.55);
+}
+.icon-twist-enter-from {
+  opacity: 0;
+  transform: rotate(-180deg) scale(0.5);
+}
+.icon-twist-leave-to {
+  opacity: 0;
+  transform: rotate(180deg) scale(0.5);
+}
+.icon-twist-enter-to, .icon-twist-leave-from {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 .page {

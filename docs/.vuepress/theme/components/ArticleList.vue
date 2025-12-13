@@ -27,20 +27,22 @@ defineProps({
         }}
       </header>
 
-      <hr />
-
       <div class="article-info">
-        <span v-if="info.author" class="author">Author: {{ info.author }}</span>
+        <span v-if="info.author" class="info-item author">
+          {{ info.author }}
+        </span>
 
-        <span v-if="info.date && !isTimeline" class="date"
-          >日期: {{ new Date(info.date).toLocaleDateString() }}</span
-        >
+        <span v-if="info.date && !isTimeline" class="info-item date">
+          {{ new Date(info.date).toLocaleDateString() }}
+        </span>
 
-        <span v-if="info.category" class="category"
-          >分类: {{ info.category.join(', ') }}</span
-        >
+        <span v-if="info.category" class="info-item category">
+          <span v-for="cat in info.category" :key="cat" class="chip">{{ cat }}</span>
+        </span>
 
-        <span v-if="info.tag" class="tag">标签: {{ info.tag.join(', ') }}</span>
+        <span v-if="info.tag" class="info-item tag">
+           <span v-for="t in info.tag" :key="t" class="hash-tag">#{{ t }}</span>
+        </span>
       </div>
 
       <!-- <div v-if="info.excerpt" class="excerpt" v-html="info.excerpt" /> -->
@@ -58,77 +60,87 @@ defineProps({
 
 .article {
   position: relative;
-
   box-sizing: border-box;
   width: 100%;
-  margin: 0 auto 1.25rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--vp-c-border);
-  border-radius: 0.4rem;
-
-  color: var(--vp-c-text);
-
+  margin: 0 auto 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background-color: var(--c-bg);
+  transition: all 0.3s ease;
   text-align: start;
-
-  @media (max-width: 419px) {
-    border-radius: 0;
-  }
 
   &:hover {
     cursor: pointer;
+    transform: translateY(-2px);
+    border-color: var(--c-brand);
   }
 
   .title {
-    position: relative;
-    display: inline-block;
-    font-size: 1.28rem;
-    line-height: 2rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    color: var(--c-text);
+    transition: color 0.2s;
+  }
 
-    &::after {
-      content: '';
-
-      position: absolute;
-      inset-inline-start: 0;
-      bottom: 0;
-
-      width: 100%;
-      height: 2px;
-
-      background: var(--vp-c-accent-bg);
-
-      visibility: hidden;
-
-      transition: transform var(--vp-t-transform);
-
-      transform: scaleX(0);
-    }
-
-    &:hover::after {
-      visibility: visible;
-    }
+  &:hover .title {
+    color: var(--c-brand);
   }
 
   .article-info {
     display: flex;
-    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--c-text-light);
 
-    > span {
-      margin-inline-end: 0.5em;
-      line-height: 1.8;
-    }
-  }
-
-  .excerpt {
-    h1 {
-      display: none;
+    .info-item {
+      display: flex;
+      align-items: center;
     }
 
-    h2 {
-      font-size: 1.2em;
+    .date {
+      font-family: monospace;
+      opacity: 0.8;
+      background-color: var(--c-bg-light);
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
-    h3 {
-      font-size: 1.15em;
+    .category {
+      .chip {
+        background-color: var(--c-bg-light);
+        color: var(--c-text);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        transition: all 0.2s;
+        
+        &:last-child {
+          margin-right: 0;
+        }
+
+        &:hover {
+            background-color: var(--c-brand);
+            color: white;
+        }
+      }
+    }
+
+    .tag {
+      .hash-tag {
+        color: var(--c-text-lighter);
+        margin-right: 0.5rem;
+        font-size: 0.85rem;
+        
+        &:hover {
+            color: var(--c-brand);
+        }
+      }
     }
   }
 }
@@ -136,18 +148,6 @@ defineProps({
 /* 暗色模式适配 */
 html.dark .article {
   border-color: var(--c-border);
-  color: var(--c-text);
-}
-
-html.dark .article .title {
-  color: var(--c-text);
-}
-
-html.dark .article .article-info span {
-  color: var(--c-text-light);
-}
-
-html.dark .article hr {
-  border-color: var(--c-border);
+  background-color: var(--c-bg);
 }
 </style>

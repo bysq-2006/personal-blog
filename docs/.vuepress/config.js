@@ -31,13 +31,9 @@ export default defineUserConfig({
       },
     }),
     blogPlugin({
-      // Only files under posts are articles
-      filter: ({ filePathRelative }) =>
-        filePathRelative ? filePathRelative.startsWith('posts/') : false,
-
-      // Getting article info
+      // Getting article info - 全局处理所有页面的元数据
       getInfo: ({ frontmatter, title, data }) => ({
-        title,
+        title: frontmatter.title || title,
         author: frontmatter.author || '',
         date: frontmatter.date || null,
         category: frontmatter.category || [],
@@ -48,18 +44,14 @@ export default defineUserConfig({
             ? frontmatter.excerpt
             : data?.excerpt || '',
       }),
-
-      // Generate excerpt for all pages excerpt those users choose to disable
-      excerptFilter: ({ frontmatter }) =>
-        !frontmatter.home &&
-        frontmatter.excerpt !== false &&
-        typeof frontmatter.excerpt !== 'string',
-
       type: [
         {
           key: 'article',
-          // Remove archive articles
-          filter: (page) => !page.frontmatter.archive,
+          // Only show posts directory, exclude archive articles
+          filter: ({ filePathRelative, frontmatter }) =>
+            filePathRelative &&
+            filePathRelative.startsWith('posts/') &&
+            !frontmatter.archive,
           layout: 'Article',
           frontmatter: () => ({
             title: 'Articles',
@@ -85,6 +77,7 @@ export default defineUserConfig({
         },
         {
           key: 'tools',
+          // Only show tools directory
           filter: ({ filePathRelative }) =>
             filePathRelative ? filePathRelative.startsWith('tools/') : false,
           frontmatter: () => ({
@@ -92,7 +85,7 @@ export default defineUserConfig({
             sidebar: false,
           }),
           layout: 'tools', // 指定 tools.vue 作为布局
-          path: '/tools/', // 访问 /tools/ 路由时渲染
+          path: '/tools/', // 访问路径为 /tools/
         }
       ],
       hotReload: true,
