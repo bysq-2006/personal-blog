@@ -9,3 +9,5 @@ node_modules/
 *.swp
 *.swo
 Thumbs.db
+deploy-config.json
+docs/.vuepress/dist/

@@ -2,10 +2,8 @@
 date: 2024-12-12
 category:
   - Linux
-  - Shell编程
 tag:
   - Linux
-  - Shell
   - 脚本编程
   - 运算符
   - 变量

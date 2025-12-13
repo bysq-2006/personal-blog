@@ -1,6 +1,6 @@
-<script setup>
+<script setup name="ArticleLayout">
 import { useBlogType } from '@vuepress/plugin-blog/client'
-import ParentLayout from '../theme/layouts/Layout.vue'
+import ParentLayout from './Layout.vue'
 import ArticleList from '../components/ArticleList.vue'
 import { computed, ref } from 'vue'
 
@@ -82,6 +82,7 @@ const categories = computed(() => {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin: 1rem 0;
+  margin-top: 6rem;
   justify-content: center;
 }
 
@@ -89,7 +90,6 @@ const categories = computed(() => {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 1rem;
-  margin-top: 5rem;
   border-radius: 1rem;
   background-color: var(--c-bg-light);
   color: var(--c-text);

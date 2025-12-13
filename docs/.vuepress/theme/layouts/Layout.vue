@@ -4,8 +4,7 @@
       <div class="navbar-inner">
         <div class="navbar-brand">
           <router-link to="/" class="brand-link">
-            <img src="/favicon.ico" alt="Logo" class="brand-logo" />
-            <span class="site-name">{{ $site.title }}</span>
+            <img src="/icons/favicon.ico" alt="Logo" class="brand-logo" />
           </router-link>
         </div>
         <div class="navbar-items">
@@ -13,6 +12,7 @@
           <nav class="navbar-nav">
             <router-link to="/" class="nav-link">首页</router-link>
             <router-link to="/article/" class="nav-link">文章</router-link>
+            <router-link to="/tools/" class="nav-link">工具</router-link>
           </nav>
           <button @click="toggleDarkMode" class="dark-mode-toggle" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
             {{ isDark ? '暗' : '亮' }}
@@ -32,6 +32,8 @@
       </div>
     </slot>
 
+    <Home v-if="route.path === '/'" />
+
     <footer class="footer">
       <div class="footer-content">
         © {{ new Date().getFullYear() }} {{ $site.title }}. Powered by VuePress.
@@ -40,10 +42,12 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
 import { usePageData } from 'vuepress/client'
-import SidebarToc from '../../components/SidebarToc.vue'
+import { useRoute } from 'vue-router'
+import SidebarToc from '../components/SidebarToc.vue'
+import Home from '../components/home.vue'
 
 // 异步加载搜索框组件，避免 SSR 问题
 const SearchBox = defineAsyncComponent(() =>
@@ -52,50 +56,36 @@ const SearchBox = defineAsyncComponent(() =>
   }))
 )
 
-export default {
-  name: 'Layout',
-  components: {
-    SearchBox,
-    SidebarToc
-  },
-  setup() {
-    const isDark = ref(false)
-    const pageData = usePageData()
+const route = useRoute()
+const isDark = ref(false)
+const pageData = usePageData()
 
-    // 获取页面标题列表
-    const headers = computed(() => {
-      return pageData.value.headers || []
-    })
+// 获取页面标题列表
+const headers = computed(() => {
+  return pageData.value.headers || []
+})
 
-    const toggleDarkMode = () => {
-      isDark.value = !isDark.value
-      const html = document.documentElement
-      if (isDark.value) {
-        html.classList.add('dark')
-        localStorage.setItem('theme', 'dark')
-      } else {
-        html.classList.remove('dark')
-        localStorage.setItem('theme', 'light')
-      }
-    }
-
-    onMounted(() => {
-      const savedTheme = localStorage.getItem('theme')
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-
-      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        isDark.value = true
-        document.documentElement.classList.add('dark')
-      }
-    })
-
-    return {
-      isDark,
-      toggleDarkMode,
-      headers
-    }
+const toggleDarkMode = () => {
+  isDark.value = !isDark.value
+  const html = document.documentElement
+  if (isDark.value) {
+    html.classList.add('dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    html.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
   }
 }
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem('theme')
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+
+  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    isDark.value = true
+    document.documentElement.classList.add('dark')
+  }
+})
 </script>
 
 <style>
@@ -115,16 +105,16 @@ export default {
 }
 
 html.dark {
-  --c-brand: #3eaf7c;
-  --c-brand-light: #4abf8a;
-  --c-text: #adbac7;
-  --c-text-light: #96a2b0;
-  --c-text-lighter: #768390;
-  --c-bg: #22272e;
-  --c-bg-light: #2d333b;
-  --c-bg-lighter: #373e47;
-  --c-border: #444c56;
-  --c-border-dark: #535f6e;
+  --c-brand: #5bd0ff;
+  --c-brand-light: #7ee0ff;
+  --c-text: #ebedf3;
+  --c-text-light: #d7e0f2;
+  --c-text-lighter: #b3c0d9;
+  --c-bg: #111927;
+  --c-bg-light: #1c2437;
+  --c-bg-lighter: #232b3f;
+  --c-border: #2b3152;
+  --c-border-dark: #3b4270;
   /* 回到顶部按钮暗色模式 */
   --back-to-top-c-bg: var(--c-bg-light);
   --back-to-top-c-accent-bg: var(--c-brand);
@@ -210,12 +200,6 @@ html.dark .search-box .suggestions .suggestion.focused {
   justify-content: space-between;
   align-items: center;
   max-width: 100%;
-}
-
-.site-name {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--c-text);
 }
 
 .brand-logo {

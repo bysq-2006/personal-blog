@@ -9,16 +9,8 @@ export default defineUserConfig({
   title: '白银三清的博客',
   description: '',
   head: [
-    ['link', { rel: 'icon', href: '/favicon.ico' }]
+    ['link', { rel: 'icon', href: '/icons/favicon.ico' }]
   ],
-
-  locales: {
-    '/': {
-      lang: 'zh-CN',
-      title: '白银三清的博客',
-      description: '我的个人博客',
-    },
-  },
 
   theme: customTheme({
     // 自定义主题配置
@@ -91,6 +83,17 @@ export default defineUserConfig({
             )
           },
         },
+        {
+          key: 'tools',
+          filter: ({ filePathRelative }) =>
+            filePathRelative ? filePathRelative.startsWith('tools/') : false,
+          frontmatter: () => ({
+            title: 'tools',
+            sidebar: false,
+          }),
+          layout: 'tools', // 指定 tools.vue 作为布局
+          path: '/tools/', // 访问 /tools/ 路由时渲染
+        }
       ],
       hotReload: true,
     }),

@@ -2,7 +2,6 @@
 date: 2024-12-12
 category:
   - Linux
-  - Shell编程
 tag:
   - Linux
   - Shell
