@@ -1,6 +1,6 @@
 <template>
   <div class="theme-container">
-    <header class="navbar">
+    <header class="navbar" :class="{ 'navbar-hidden': isNavbarHidden }">
       <div class="navbar-inner">
         <div class="navbar-brand">
           <router-link to="/" class="brand-link">
@@ -13,7 +13,13 @@
             <router-link to="/" class="nav-link">首页</router-link>
             <router-link to="/article/" class="nav-link">文章</router-link>
             <router-link to="/tools/" class="nav-link">工具</router-link>
+            <router-link to="/projects/" class="nav-link">项目</router-link>
           </nav>
+          <button @click="toggleMenu" class="hamburger-btn" :class="{ active: isMenuOpen }">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
           <button @click="toggleDarkMode" class="dark-mode-toggle" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
             <transition name="icon-twist" mode="out-in">
               <SvgIcon :name="isDark ? 'dark' : 'bright'" :key="isDark ? 'dark' : 'bright'" />
@@ -22,6 +28,18 @@
         </div>
       </div>
     </header>
+
+    <!-- 移动端下拉菜单 -->
+    <transition name="menu-fade">
+      <div v-if="isMenuOpen" class="mobile-menu" @click="toggleMenu">
+        <div class="mobile-menu-content" @click.stop>
+          <router-link to="/" class="mobile-nav-link" @click="toggleMenu">首页</router-link>
+          <router-link to="/article/" class="mobile-nav-link" @click="toggleMenu">文章</router-link>
+          <router-link to="/tools/" class="mobile-nav-link" @click="toggleMenu">工具</router-link>
+          <router-link to="/projects/" class="mobile-nav-link" @click="toggleMenu">项目</router-link>
+        </div>
+      </div>
+    </transition>
 
     <slot name="page">
       <div class="page-wrapper">
@@ -43,28 +61,30 @@
 </template>
 
 <script setup>
-import SvgIcon from '../components/SvgIcon.vue'
 import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
 import { usePageData } from 'vuepress/client'
-import { useRoute } from 'vue-router'
-import SidebarToc from '../components/SidebarToc.vue'
-
-// 异步加载搜索框组件，避免 SSR 问题
+import SvgIcon from '@mytheme/components/Layout/SvgIcon.vue'
+import SidebarToc from '@mytheme/components/Layout/SidebarToc.vue'
 const SearchBox = defineAsyncComponent(() =>
+  // 异步加载搜索框组件，避免 SSR 问题
   import('@vuepress/plugin-search/client').then(m => m.SearchBox).catch(() => ({
     render: () => null
   }))
 )
 
-const route = useRoute()
 const isDark = ref(false)
 const pageData = usePageData()
+const isMenuOpen = ref(false)
+const isNavbarHidden = ref(false)
+
+let lastScrollY = 0
 
 // 获取页面标题列表
 const headers = computed(() => {
   return pageData.value.headers || []
 })
 
+// 切换暗黑模式
 const toggleDarkMode = () => {
   isDark.value = !isDark.value
   const html = document.documentElement
@@ -77,6 +97,23 @@ const toggleDarkMode = () => {
   }
 }
 
+// 切换移动端菜单显示状态
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value
+}
+
+// 处理滚动事件，显示或隐藏导航栏s
+const handleScroll = () => {
+  const currentScrollY = window.scrollY
+  if (Math.abs(currentScrollY - lastScrollY) < 10) return
+  if (currentScrollY > lastScrollY && currentScrollY > 100) {
+    isNavbarHidden.value = true
+  } else if (currentScrollY < lastScrollY) {
+    isNavbarHidden.value = false
+  }
+  lastScrollY = currentScrollY
+}
+
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme')
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -85,37 +122,46 @@ onMounted(() => {
     isDark.value = true
     document.documentElement.classList.add('dark')
   }
+  // 添加滚动监听
+  window.addEventListener('scroll', handleScroll, { passive: true })
 })
 </script>
 
 <style>
 :root {
-  /* 暖色调/米黄色系 */
-  --c-brand: #d97706;
-  --c-brand-light: #f59e0b;
-  --c-text: #433422;
-  --c-text-light: #6b5d52;
-  --c-text-lighter: #9ca3af;
-  --c-bg: #fffdf7;
-  --c-bg-light: #f7f2e6;
-  --c-bg-lighter: #efe8d8;
-  --c-border: #e8e1d5;
-  --c-border-dark: #d6cfc2;
+  /* 清爽海洋蓝 */
+  --c-brand: #0284c7;
+  /* 主色调：深天蓝 */
+  --c-brand-light: #38bdf8;
+  /* 悬停色：亮天蓝 */
+  --c-text: #334155;
+  /* 正文：深蓝灰 */
+  --c-text-light: #64748b;
+  /* 浅色文字 */
+  --c-text-lighter: #94a3b8;
+  --c-bg: #ffffff;
+  /* 背景：纯白 */
+  --c-bg-light: #f0f9ff;
+  /* 浅背景：淡蓝 */
+  --c-bg-lighter: #e0f2fe;
+  --c-border: #e2e8f0;
+  --c-border-dark: #cbd5e1;
 
   --navbar-height: 3.6rem;
 }
 
 html.dark {
-  --c-brand: #fbbf24;
-  --c-brand-light: #fcd34d;
-  --c-text: #e7e5e4;
-  --c-text-light: #a8a29e;
-  --c-text-lighter: #78716c;
-  --c-bg: #1c1917;
-  --c-bg-light: #292524;
-  --c-bg-lighter: #44403c;
-  --c-border: #44403c;
-  --c-border-dark: #57534e;
+  --c-brand: #38bdf8;
+  --c-brand-light: #7dd3fc;
+  --c-text: #f1f5f9;
+  --c-text-light: #cbd5e1;
+  --c-text-lighter: #94a3b8;
+  --c-bg: #0f172a;
+  /* 暗黑背景：深蓝黑 */
+  --c-bg-light: #1e293b;
+  --c-bg-lighter: #334155;
+  --c-border: #334155;
+  --c-border-dark: #475569;
   /* 回到顶部按钮暗色模式 */
   --back-to-top-c-bg: var(--c-bg-light);
   --back-to-top-c-accent-bg: var(--c-brand);
@@ -144,7 +190,56 @@ a:hover {
   color: var(--c-brand-light);
 }
 
-/* SearchBox 暗黑模式适配 */
+/* SearchBox 适配米黄色暖色调 */
+.search-box input {
+  color: var(--c-text);
+  background-color: var(--c-bg-light);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 0.4em 1em;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  font-size: 1em;
+}
+
+.search-box input:focus {
+  border-color: var(--c-brand);
+  background-color: var(--c-bg);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--c-brand-light, #f59e0b33);
+}
+
+.search-box .suggestions {
+  background-color: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.06);
+}
+
+.search-box .suggestions .suggestion a {
+  color: var(--c-text);
+  padding: 0.3em 1em;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.search-box .suggestions .suggestion a {
+  color: var(--c-text);
+  padding: 0.3em 1em;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.search-box .suggestions .suggestion:hover,
+.search-box .suggestions .suggestion.focused {
+  background-color: var(--c-brand);
+}
+
+.search-box .suggestions .suggestion:hover a,
+.search-box .suggestions .suggestion.focused a {
+  color: #fff;
+  background: none;
+}
+
 html.dark .search-box input {
   color: var(--c-text);
   background-color: var(--c-bg-light);
@@ -167,10 +262,17 @@ html.dark .search-box .suggestions .suggestion a {
 
 html.dark .search-box .suggestions .suggestion.focused a {
   color: var(--c-brand);
+  background: var(--c-bg-light);
 }
 
 html.dark .search-box .suggestions .suggestion.focused {
   background-color: var(--c-bg-light);
+}
+
+/* 返回顶部按钮米黄色适配 */
+.vp-back-to-top-button {
+  background: var(--c-bg-light) !important;
+  color: var(--c-brand) !important;
 }
 </style>
 
@@ -191,7 +293,11 @@ html.dark .search-box .suggestions .suggestion.focused {
   background-color: var(--c-bg);
   box-sizing: border-box;
   border-bottom: 1px solid var(--c-border);
-  transition: background-color 0.3s, border-color 0.3s;
+  transition: background-color 0.3s, border-color 0.3s, transform 0.3s ease;
+}
+
+.navbar-hidden {
+  transform: translateY(-100%);
 }
 
 .navbar-inner {
@@ -214,6 +320,85 @@ html.dark .search-box .suggestions .suggestion.focused {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger-btn span {
+  width: 100%;
+  height: 2px;
+  background-color: var(--c-text);
+  transition: all 0.3s;
+  transform-origin: center;
+}
+
+.hamburger-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(4px, 4px);
+}
+
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -5px);
+}
+
+.mobile-menu {
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 19;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 2rem;
+}
+
+.mobile-menu-content {
+  background-color: var(--c-bg);
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-link {
+  display: block;
+  color: var(--c-text);
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.router-link-active {
+  background-color: var(--c-bg-light);
+  color: var(--c-brand);
+}
+
+.menu-fade-enter-active,
+.menu-fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.menu-fade-enter-from,
+.menu-fade-leave-to {
+  opacity: 0;
 }
 
 .navbar-nav {
@@ -248,18 +433,23 @@ html.dark .search-box .suggestions .suggestion.focused {
   transform: scale(1.1);
 }
 
-.icon-twist-enter-active, .icon-twist-leave-active {
-  transition: all 0.2s cubic-bezier(.68,-0.55,.27,1.55);
+.icon-twist-enter-active,
+.icon-twist-leave-active {
+  transition: all 0.2s cubic-bezier(.68, -0.55, .27, 1.55);
 }
+
 .icon-twist-enter-from {
   opacity: 0;
   transform: rotate(-180deg) scale(0.5);
 }
+
 .icon-twist-leave-to {
   opacity: 0;
   transform: rotate(180deg) scale(0.5);
 }
-.icon-twist-enter-to, .icon-twist-leave-from {
+
+.icon-twist-enter-to,
+.icon-twist-leave-from {
   opacity: 1;
   transform: rotate(0deg) scale(1);
 }
@@ -299,6 +489,10 @@ html.dark .search-box .suggestions .suggestion.focused {
 @media (max-width: 719px) {
   .navbar-nav {
     display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
   }
 
   .page.has-sidebar {

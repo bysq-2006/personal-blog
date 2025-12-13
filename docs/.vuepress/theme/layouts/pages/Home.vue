@@ -10,8 +10,6 @@
 </template>
 
 <script setup name="Home">
-import ParentLayout from './Layout.vue'
-
 </script>
 
 <style scoped></style>

@@ -1,7 +1,33 @@
+<template>
+  <ParentLayout>
+    <template #page>
+      <CategoryWrapper>
+
+        <!-- 分类标签 -->
+        <div class="category-filter">
+          <div class="category-item" :class="{ active: !currentCategory }" @click="currentCategory = ''">
+            全部
+            <span class="count">{{ articles.items.length }}</span>
+          </div>
+          <div v-for="(count, category) in categories" :key="category" class="category-item"
+            :class="{ active: currentCategory === category }" @click="toggleCategory(category)">
+            {{ category }}
+            <span class="count">{{ count }}</span>
+          </div>
+        </div>
+
+        <!-- 文章列表 -->
+        <div class="content-area">
+          <ArticleList :items="items" />
+        </div>
+      </CategoryWrapper>
+    </template>
+  </ParentLayout>
+</template>
+
 <script setup name="ArticleLayout">
 import { useBlogType } from '@vuepress/plugin-blog/client'
-import ParentLayout from './Layout.vue'
-import ArticleList from '../components/ArticleList.vue'
+import ArticleList from '@mytheme/components/ArticleList.vue'
 import { computed, ref } from 'vue'
 
 const articles = useBlogType('article')
@@ -14,7 +40,7 @@ const items = computed(() => {
   if (!currentCategory.value) {
     return articles.value.items
   }
-  return articles.value.items.filter(item => 
+  return articles.value.items.filter(item =>
     item.info.category && item.info.category.includes(currentCategory.value)
   )
 })
@@ -43,46 +69,12 @@ const categories = computed(() => {
 })
 </script>
 
-<template>
-  <ParentLayout>
-    <template #page>
-      <main class="page">
-        <!-- 分类标签 -->
-        <div class="category-wrapper">
-          <div 
-            class="category-item" 
-            :class="{ active: !currentCategory }"
-            @click="currentCategory = ''"
-          >
-            全部
-            <span class="count">{{ articles.items.length }}</span>
-          </div>
-          <div 
-            v-for="(count, category) in categories" 
-            :key="category" 
-            class="category-item"
-            :class="{ active: currentCategory === category }"
-            @click="toggleCategory(category)"
-          >
-            {{ category }}
-            <span class="count">{{ count }}</span>
-          </div>
-        </div>
-
-        <!-- 文章列表 -->
-        <ArticleList :items="items" />
-      </main>
-    </template>
-  </ParentLayout>
-</template>
-
 <style lang="scss">
-.category-wrapper {
+.category-filter {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin: 1rem 0;
-  margin-top: 6rem;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
   justify-content: center;
 }
 
@@ -99,7 +91,7 @@ const categories = computed(() => {
   transition: all 0.3s;
 
   &:hover {
-    background-color: var(--c-bg-hover);
+    background-color: var(--c-bg-lighter);
   }
 
   &.active {
@@ -120,5 +112,14 @@ const categories = computed(() => {
     color: var(--c-text-light);
     font-size: 0.75rem;
   }
+
+  &.active .count {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+}
+
+.content-area {
+  width: 100%;
 }
 </style>

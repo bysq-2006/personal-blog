@@ -2,6 +2,8 @@ import { blogPlugin } from '@vuepress/plugin-blog'
 import { searchPlugin } from '@vuepress/plugin-search'
 import { defineUserConfig } from 'vuepress'
 import { viteBundler } from '@vuepress/bundler-vite'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
 import customTheme from './theme/index.js'
 
 export default defineUserConfig({
@@ -86,11 +88,31 @@ export default defineUserConfig({
           }),
           layout: 'tools', // 指定 tools.vue 作为布局
           path: '/tools/', // 访问路径为 /tools/
+        },
+        {
+          key: 'project',
+          // Only show projects directory
+          filter: ({ filePathRelative }) =>
+            filePathRelative ? filePathRelative.startsWith('projects/') : false,
+          frontmatter: () => ({
+            title: 'projects',
+            sidebar: false,
+          }),
+          layout: 'project', // 指定 project.vue 作为布局
+          path: '/projects/', // 访问路径为 /projects/
         }
       ],
       hotReload: true,
     }),
   ],
 
-  bundler: viteBundler(),
+  bundler: viteBundler({
+    viteOptions: {
+      resolve: {
+        alias: {
+          '@mytheme': resolve(dirname(fileURLToPath(import.meta.url)), './theme'),
+        }
+      }
+    }
+  }),
 })

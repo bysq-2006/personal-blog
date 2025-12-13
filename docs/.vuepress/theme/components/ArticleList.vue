@@ -11,52 +11,40 @@ defineProps({
 </script>
 
 <template>
-  <div class="article-wrapper">
-    <div v-if="!items.length">Nothing in here.</div>
+  <div v-if="!items.length">Nothing in here.</div>
 
-    <article
-      v-for="{ info, path } in items"
-      :key="path"
-      class="article"
-      @click="$router.push(path)"
-    >
-      <header class="title">
-        {{
-          (isTimeline ? `${new Date(info.date).toLocaleDateString()}: ` : '') +
-          info.title
-        }}
-      </header>
+  <article v-for="{ info, path } in items" :key="path" class="article" @click="$router.push(path)">
+    <header class="title">
+      {{
+        (isTimeline ? `${new Date(info.date).toLocaleDateString()}: ` : '') +
+        info.title
+      }}
+    </header>
 
-      <div class="article-info">
-        <span v-if="info.author" class="info-item author">
-          {{ info.author }}
-        </span>
+    <div class="article-info">
+      <span v-if="info.author" class="info-item author">
+        {{ info.author }}
+      </span>
 
-        <span v-if="info.date && !isTimeline" class="info-item date">
-          {{ new Date(info.date).toLocaleDateString() }}
-        </span>
+      <span v-if="info.date && !isTimeline" class="info-item date">
+        {{ new Date(info.date).toLocaleDateString() }}
+      </span>
 
-        <span v-if="info.category" class="info-item category">
-          <span v-for="cat in info.category" :key="cat" class="chip">{{ cat }}</span>
-        </span>
+      <span v-if="info.category" class="info-item category">
+        <span v-for="cat in info.category" :key="cat" class="chip">{{ cat }}</span>
+      </span>
 
-        <span v-if="info.tag" class="info-item tag">
-           <span v-for="t in info.tag" :key="t" class="hash-tag">#{{ t }}</span>
-        </span>
-      </div>
+      <span v-if="info.tag" class="info-item tag">
+        <span v-for="t in info.tag" :key="t" class="hash-tag">#{{ t }}</span>
+      </span>
+    </div>
 
-      <!-- <div v-if="info.excerpt" class="excerpt" v-html="info.excerpt" /> -->
-    </article>
-  </div>
+    <!-- <div v-if="info.excerpt" class="excerpt" v-html="info.excerpt" /> -->
+  </article>
 </template>
 
 <style lang="scss">
 @use '@vuepress/theme-default/styles/mixins';
-
-.article-wrapper {
-  @include mixins.content-wrapper;
-  text-align: center;
-}
 
 .article {
   position: relative;
@@ -119,14 +107,14 @@ defineProps({
         font-size: 0.8rem;
         margin-right: 0.5rem;
         transition: all 0.2s;
-        
+
         &:last-child {
           margin-right: 0;
         }
 
         &:hover {
-            background-color: var(--c-brand);
-            color: white;
+          background-color: var(--c-brand);
+          color: white;
         }
       }
     }
@@ -136,9 +124,9 @@ defineProps({
         color: var(--c-text-lighter);
         margin-right: 0.5rem;
         font-size: 0.85rem;
-        
+
         &:hover {
-            color: var(--c-brand);
+          color: var(--c-brand);
         }
       }
     }
