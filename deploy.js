@@ -65,7 +65,23 @@ try {
 }
 
 // 2. 发送到服务器
-console.log('📤 发送到服务器...');
+console.log('📁 确保服务器目录存在并清空...');
+let mkdirCommand;
+if (useKeyAuth) {
+  mkdirCommand = `ssh -i "${privateKeyPath}" ${username}@${host} "mkdir -p ${remotePath} && rm -rf ${remotePath}/*"`;
+} else {
+  mkdirCommand = `sshpass -p "${password}" ssh ${username}@${host} "mkdir -p ${remotePath} && rm -rf ${remotePath}/*"`;
+}
+
+try {
+  execSync(mkdirCommand, { stdio: 'inherit' });
+  console.log('✅ 目录创建完成');
+} catch (error) {
+  console.error('❌ 创建目录失败：', error.message);
+  process.exit(1);
+}
+
+console.log('�📤 发送到服务器...');
 let scpCommand;
 if (useKeyAuth) {
   scpCommand = `scp -i "${privateKeyPath}" "${archivePath}" ${username}@${host}:${remotePath}/`;

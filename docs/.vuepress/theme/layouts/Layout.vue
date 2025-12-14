@@ -105,10 +105,9 @@ const toggleMenu = () => {
 // 处理滚动事件，显示或隐藏导航栏s
 const handleScroll = () => {
   const currentScrollY = window.scrollY
-  if (Math.abs(currentScrollY - lastScrollY) < 10) return
-  if (currentScrollY > lastScrollY && currentScrollY > 100) {
+  if (currentScrollY > lastScrollY) {
     isNavbarHidden.value = true
-  } else if (currentScrollY < lastScrollY) {
+  } else {
     isNavbarHidden.value = false
   }
   lastScrollY = currentScrollY
@@ -127,22 +126,15 @@ onMounted(() => {
 })
 </script>
 
-<style>
+<style lang="scss">
 :root {
-  /* 清爽海洋蓝 */
   --c-brand: #0284c7;
-  /* 主色调：深天蓝 */
   --c-brand-light: #38bdf8;
-  /* 悬停色：亮天蓝 */
   --c-text: #334155;
-  /* 正文：深蓝灰 */
   --c-text-light: #64748b;
-  /* 浅色文字 */
   --c-text-lighter: #94a3b8;
   --c-bg: #ffffff;
-  /* 背景：纯白 */
   --c-bg-light: #f0f9ff;
-  /* 浅背景：淡蓝 */
   --c-bg-lighter: #e0f2fe;
   --c-border: #e2e8f0;
   --c-border-dark: #cbd5e1;
@@ -184,99 +176,95 @@ a {
   font-weight: 500;
   text-decoration: none;
   color: var(--c-brand);
-}
 
-a:hover {
-  color: var(--c-brand-light);
+  &:hover {
+    color: var(--c-brand-light);
+  }
 }
 
 /* SearchBox 适配米黄色暖色调 */
-.search-box input {
-  color: var(--c-text);
-  background-color: var(--c-bg-light);
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  padding: 0.4em 1em;
-  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-  font-size: 1em;
+.search-box {
+  input {
+    color: var(--c-text);
+    background-color: var(--c-bg-light);
+    border: 1px solid var(--c-border);
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: var(--c-brand);
+      background-color: var(--c-bg);
+      outline: none;
+      box-shadow: 0 0 0 1px var(--c-brand-light, #f59e0b33);
+    }
+  }
+
+  .suggestions {
+    background-color: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+
+    .suggestion {
+      a {
+        color: var(--c-text);
+        padding: 0.3em 1em;
+        border-radius: 4px;
+        transition: background 0.2s, color 0.2s;
+      }
+
+      &:hover,
+      &.focused {
+        background-color: var(--c-brand);
+
+        a {
+          color: #fff;
+          background: none;
+        }
+      }
+    }
+  }
 }
 
-.search-box input:focus {
-  border-color: var(--c-brand);
-  background-color: var(--c-bg);
-  outline: none;
-  box-shadow: 0 0 0 2px var(--c-brand-light, #f59e0b33);
+html.dark .search-box {
+  input {
+    color: var(--c-text);
+    background-color: var(--c-bg-light);
+    border-color: var(--c-border);
+
+    &:focus {
+      border-color: var(--c-brand);
+      background-color: var(--c-bg);
+    }
+  }
+
+  .suggestions {
+    background-color: var(--c-bg);
+    border-color: var(--c-border);
+
+    .suggestion {
+      a {
+        color: var(--c-text);
+      }
+
+      &.focused {
+        background-color: var(--c-bg-light);
+
+        a {
+          color: var(--c-brand);
+          background: var(--c-bg-light);
+        }
+      }
+    }
+  }
 }
 
-.search-box .suggestions {
-  background-color: var(--c-bg);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.06);
-}
-
-.search-box .suggestions .suggestion a {
-  color: var(--c-text);
-  padding: 0.3em 1em;
-  border-radius: 4px;
-  transition: background 0.2s, color 0.2s;
-}
-
-.search-box .suggestions .suggestion a {
-  color: var(--c-text);
-  padding: 0.3em 1em;
-  border-radius: 4px;
-  transition: color 0.2s;
-}
-
-.search-box .suggestions .suggestion:hover,
-.search-box .suggestions .suggestion.focused {
-  background-color: var(--c-brand);
-}
-
-.search-box .suggestions .suggestion:hover a,
-.search-box .suggestions .suggestion.focused a {
-  color: #fff;
-  background: none;
-}
-
-html.dark .search-box input {
-  color: var(--c-text);
-  background-color: var(--c-bg-light);
-  border-color: var(--c-border);
-}
-
-html.dark .search-box input:focus {
-  border-color: var(--c-brand);
-  background-color: var(--c-bg);
-}
-
-html.dark .search-box .suggestions {
-  background-color: var(--c-bg);
-  border-color: var(--c-border);
-}
-
-html.dark .search-box .suggestions .suggestion a {
-  color: var(--c-text);
-}
-
-html.dark .search-box .suggestions .suggestion.focused a {
-  color: var(--c-brand);
-  background: var(--c-bg-light);
-}
-
-html.dark .search-box .suggestions .suggestion.focused {
-  background-color: var(--c-bg-light);
-}
-
-/* 返回顶部按钮米黄色适配 */
+/* 返回顶部按钮适配 */
 .vp-back-to-top-button {
   background: var(--c-bg-light) !important;
   color: var(--c-brand) !important;
 }
 </style>
 
-<style scoped>
+<style scoped lang="scss">
 .theme-container {
   min-height: 100vh;
   display: flex;
@@ -294,19 +282,30 @@ html.dark .search-box .suggestions .suggestion.focused {
   box-sizing: border-box;
   border-bottom: 1px solid var(--c-border);
   transition: background-color 0.3s, border-color 0.3s, transform 0.3s ease;
-}
 
-.navbar-hidden {
-  transform: translateY(-100%);
-}
+  &-hidden {
+    transform: translateY(-100%);
+  }
 
-.navbar-inner {
-  padding: 0 1.5rem;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 100%;
+  &-inner {
+    padding: 0 1.5rem;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  &-items {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  &-nav {
+    display: flex;
+    gap: 1.5rem;
+  }
 }
 
 .brand-logo {
@@ -314,12 +313,6 @@ html.dark .search-box .suggestions .suggestion.focused {
   margin-right: 0.5rem;
   vertical-align: middle;
   transform: translateY(-0.24rem);
-}
-
-.navbar-items {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
 }
 
 .hamburger-btn {
@@ -332,26 +325,28 @@ html.dark .search-box .suggestions .suggestion.focused {
   border: none;
   cursor: pointer;
   padding: 0;
-}
 
-.hamburger-btn span {
-  width: 100%;
-  height: 2px;
-  background-color: var(--c-text);
-  transition: all 0.3s;
-  transform-origin: center;
-}
+  span {
+    width: 100%;
+    height: 2px;
+    background-color: var(--c-text);
+    transition: all 0.3s;
+    transform-origin: center;
+  }
 
-.hamburger-btn.active span:nth-child(1) {
-  transform: rotate(45deg) translate(4px, 4px);
-}
+  &.active {
+    span:nth-child(1) {
+      transform: rotate(45deg) translate(4px, 4px);
+    }
 
-.hamburger-btn.active span:nth-child(2) {
-  opacity: 0;
-}
+    span:nth-child(2) {
+      opacity: 0;
+    }
 
-.hamburger-btn.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -5px);
+    span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -5px);
+    }
+  }
 }
 
 .mobile-menu {
@@ -366,14 +361,14 @@ html.dark .search-box .suggestions .suggestion.focused {
   justify-content: center;
   align-items: flex-start;
   padding-top: 2rem;
-}
 
-.mobile-menu-content {
-  background-color: var(--c-bg);
-  border-radius: 8px;
-  padding: 1rem;
-  min-width: 200px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  &-content {
+    background-color: var(--c-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 200px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .mobile-nav-link {
@@ -383,27 +378,24 @@ html.dark .search-box .suggestions .suggestion.focused {
   padding: 0.75rem 1rem;
   border-radius: 4px;
   transition: background-color 0.2s;
+
+  &:hover,
+  &.router-link-active {
+    background-color: var(--c-bg-light);
+    color: var(--c-brand);
+  }
 }
 
-.mobile-nav-link:hover,
-.mobile-nav-link.router-link-active {
-  background-color: var(--c-bg-light);
-  color: var(--c-brand);
-}
+.menu-fade {
+  &-enter-active,
+  &-leave-active {
+    transition: opacity 0.3s;
+  }
 
-.menu-fade-enter-active,
-.menu-fade-leave-active {
-  transition: opacity 0.3s;
-}
-
-.menu-fade-enter-from,
-.menu-fade-leave-to {
-  opacity: 0;
-}
-
-.navbar-nav {
-  display: flex;
-  gap: 1.5rem;
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+  }
 }
 
 .nav-link {
@@ -412,11 +404,11 @@ html.dark .search-box .suggestions .suggestion.focused {
   line-height: 1.4rem;
   transition: color 0.3s;
   display: inline-block;
-}
 
-.nav-link:hover,
-.nav-link.router-link-active {
-  color: var(--c-brand);
+  &:hover,
+  &.router-link-active {
+    color: var(--c-brand);
+  }
 }
 
 .dark-mode-toggle {
@@ -427,48 +419,50 @@ html.dark .search-box .suggestions .suggestion.focused {
   padding: 0 0.5rem;
   color: var(--c-text);
   transition: transform 0.3s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
-.dark-mode-toggle:hover {
-  transform: scale(1.1);
-}
+.icon-twist {
+  &-enter-active,
+  &-leave-active {
+    transition: all 0.2s cubic-bezier(.68, -0.55, .27, 1.55);
+  }
 
-.icon-twist-enter-active,
-.icon-twist-leave-active {
-  transition: all 0.2s cubic-bezier(.68, -0.55, .27, 1.55);
-}
+  &-enter-from {
+    opacity: 0;
+    transform: rotate(-180deg) scale(0.5);
+  }
 
-.icon-twist-enter-from {
-  opacity: 0;
-  transform: rotate(-180deg) scale(0.5);
-}
+  &-leave-to {
+    opacity: 0;
+    transform: rotate(180deg) scale(0.5);
+  }
 
-.icon-twist-leave-to {
-  opacity: 0;
-  transform: rotate(180deg) scale(0.5);
-}
-
-.icon-twist-enter-to,
-.icon-twist-leave-from {
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
+  &-enter-to,
+  &-leave-from {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
 }
 
 .page {
   flex: 1;
   padding-top: var(--navbar-height);
   display: block;
-}
 
-.page-wrapper {
-  display: flex;
-  padding-top: var(--navbar-height);
-  min-height: calc(100vh - var(--navbar-height));
-}
+  &-wrapper {
+    display: flex;
+    padding-top: var(--navbar-height);
+    min-height: calc(100vh - var(--navbar-height));
+  }
 
-.page.has-sidebar {
-  margin-left: 16rem;
-  padding-top: 0;
+  &.has-sidebar {
+    margin-left: 16rem;
+    padding-top: 0;
+  }
 }
 
 .theme-default-content {

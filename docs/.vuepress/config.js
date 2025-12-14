@@ -35,16 +35,12 @@ export default defineUserConfig({
     blogPlugin({
       // Getting article info - 全局处理所有页面的元数据
       getInfo: ({ frontmatter, title, data }) => ({
-        title: frontmatter.title || title,
+        title: title || frontmatter.title,
         author: frontmatter.author || '',
         date: frontmatter.date || null,
         category: frontmatter.category || [],
         tag: frontmatter.tag || [],
-        excerpt:
-          // Support manually set excerpt through frontmatter
-          typeof frontmatter.excerpt === 'string'
-            ? frontmatter.excerpt
-            : data?.excerpt || '',
+        frontmatter: frontmatter
       }),
       type: [
         {

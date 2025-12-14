@@ -239,6 +239,7 @@
 
                 // 查找冒号位置（现在统一为英文冒号）
                 let idx = line.indexOf(':');
+                let hasValidName = false;
 
                 // 处理人名插入逻辑
                 if (idx !== -1) {
@@ -252,14 +253,20 @@
                             name = name.trim();
                             if (figureMap[name]) {
                                 outputLines.push(figureMap[name]);
+                                hasValidName = true;
                             }
                         }
                     }
                 }
 
-                // 添加后缀
-                // 去除行尾空白后再添加后缀，防止多余空格
-                outputLines.push(line.trimEnd() + suffix);
+                // 根据是否检测到人名决定输出格式
+                if (hasValidName) {
+                    // 有有效人名，添加原行 + 后缀
+                    outputLines.push(line.trimEnd() + suffix);
+                } else {
+                    // 没有检测到人名，当作旁白，添加 "句子内容 + 后缀
+                    outputLines.push(line.trimEnd() + suffix);
+                }
             }
 
             document.getElementById('output').value = outputLines.join('\n');
