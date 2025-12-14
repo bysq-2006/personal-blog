@@ -1,6 +1,7 @@
 ---
 title: Amadeus
 github: https://github.com/bysq-2006/MAHO-Amadeus
+description: 模仿《命运石之门0》里面的一个AI对话
 ---
 
 ## 项目介绍
