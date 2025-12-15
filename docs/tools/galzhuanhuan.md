@@ -29,5 +29,5 @@ changeFigure:mygo_avemujica_v6/soyo/039_school_winter-2023_rip/model.json -right
 ```
 
 <div style="width: 100%; height: 800px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-  <iframe src="/downloads/galzhuanhuan.html" width="100%" height="100%" style="border: none; border-radius: 8px;"></iframe>
+  <iframe src="/parts/galzhuanhuan.html" width="100%" height="100%" style="border: none; border-radius: 8px;"></iframe>
 </div>

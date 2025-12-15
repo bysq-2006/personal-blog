@@ -45,7 +45,7 @@ const tools = useBlogType('tools')
 .tools-container {
   width: 100%;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 3rem 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
@@ -58,7 +58,7 @@ const tools = useBlogType('tools')
 
 /* 卡片基础样式 - 强调线条 */
 .tool-card {
-  border: 1px solid #e5e5e5; /* 浅灰细边框 */
+  border: 1px solid var(--c-border-dark); /* 浅灰细边框 */
   background-color: transparent;
   transition: all 0.3s ease;
   position: relative;
@@ -68,8 +68,8 @@ const tools = useBlogType('tools')
 
 /* 悬停效果 - 边框变深，不使用阴影保持扁平 */
 .tool-card:hover {
-  border-color: #333;
-  background-color: #fafafa;
+  border-color: var(--c-text);
+  background-color: var(--c-bg-light);
 }
 
 .tool-link {
@@ -94,7 +94,7 @@ const tools = useBlogType('tools')
   margin: 0 0 0.8rem 0;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--c-text);
   letter-spacing: 0.5px;
   position: relative;
   padding-bottom: 0.8rem;
@@ -108,7 +108,7 @@ const tools = useBlogType('tools')
   left: 0;
   width: 1.5rem; /* 初始长度 */
   height: 1px; /* 极细线条 */
-  background-color: #2c3e50;
+  background-color: var(--c-text);
   transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -119,7 +119,7 @@ const tools = useBlogType('tools')
 /* 摘要/描述文字 */
 .tool-excerpt {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--c-text-light);
   line-height: 1.5;
   flex-grow: 1;
   margin-bottom: 1rem;
@@ -132,13 +132,13 @@ const tools = useBlogType('tools')
   bottom: 0;
   right: 0;
   font-size: 1.2rem;
-  color: #ccc;
+  color: var(--c-text-lighter);
   transition: all 0.3s ease;
   line-height: 1;
 }
 
 .tool-card:hover .tool-arrow {
-  color: #333;
+  color: var(--c-text);
   transform: translateX(3px);
 }
 
@@ -150,9 +150,9 @@ const tools = useBlogType('tools')
 }
 
 .empty-box {
-  border: 1px dashed #ccc;
+  border: 1px dashed var(--c-border-dark);
   padding: 2rem 4rem;
-  color: #999;
+  color: var(--c-text-light);
   letter-spacing: 1px;
 }
 

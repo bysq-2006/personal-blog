@@ -11,3 +11,12 @@ node_modules/
 Thumbs.db
 deploy-config.json
 docs/.vuepress/dist/
+
+# Yarn Berry
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions

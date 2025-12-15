@@ -15,7 +15,6 @@ const iconHref = computed(() => `/icons/icons.svg#${props.name}`)
 <style scoped>
 .icon {
   width: 22px;
-  height: 22px;
   vertical-align: middle;
   fill: currentColor;
 }

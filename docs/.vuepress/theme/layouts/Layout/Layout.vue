@@ -63,8 +63,8 @@
 <script setup>
 import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
 import { usePageData } from 'vuepress/client'
-import SvgIcon from '@mytheme/components/Layout/SvgIcon.vue'
-import SidebarToc from '@mytheme/components/Layout/SidebarToc.vue'
+import SvgIcon from './SvgIcon.vue'
+import SidebarToc from './SidebarToc.vue'
 const SearchBox = defineAsyncComponent(() =>
   // 异步加载搜索框组件，避免 SSR 问题
   import('@vuepress/plugin-search/client').then(m => m.SearchBox).catch(() => ({
@@ -136,7 +136,7 @@ onMounted(() => {
   --c-bg: #ffffff;
   --c-bg-light: #f0f9ff;
   --c-bg-lighter: #e0f2fe;
-  --c-border: #e2e8f0;
+  --c-border: #c1c7ce;
   --c-border-dark: #cbd5e1;
 
   --navbar-height: 3.6rem;
@@ -153,7 +153,7 @@ html.dark {
   --c-bg-light: #1e293b;
   --c-bg-lighter: #334155;
   --c-border: #334155;
-  --c-border-dark: #475569;
+  --c-border-dark: #384454;
   /* 回到顶部按钮暗色模式 */
   --back-to-top-c-bg: var(--c-bg-light);
   --back-to-top-c-accent-bg: var(--c-brand);
@@ -300,11 +300,14 @@ html.dark .search-box {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    height: 100%;
   }
 
   &-nav {
     display: flex;
     gap: 1.5rem;
+    height: 100%;
+    align-items: center;
   }
 }
 
@@ -317,34 +320,45 @@ html.dark .search-box {
 
 .hamburger-btn {
   display: none;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 20px;
-  height: 20px;
+  position: relative;
+  width: 24px;
+  height: 24px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
 
   span {
+    position: absolute;
+    left: 0;
     width: 100%;
     height: 2px;
     background-color: var(--c-text);
+    border-radius: 2px;
     transition: all 0.3s;
     transform-origin: center;
+  }
+  span:nth-child(1) {
+    top: 5px;
+  }
+  span:nth-child(2) {
+    top: 11px;
+  }
+  span:nth-child(3) {
+    top: 17px;
   }
 
   &.active {
     span:nth-child(1) {
-      transform: rotate(45deg) translate(4px, 4px);
+      top: 11px;
+      transform: rotate(45deg);
     }
-
     span:nth-child(2) {
       opacity: 0;
     }
-
     span:nth-child(3) {
-      transform: rotate(-45deg) translate(6px, -5px);
+      top: 11px;
+      transform: rotate(-45deg);
     }
   }
 }
@@ -387,6 +401,7 @@ html.dark .search-box {
 }
 
 .menu-fade {
+
   &-enter-active,
   &-leave-active {
     transition: opacity 0.3s;
@@ -403,7 +418,9 @@ html.dark .search-box {
   font-size: 0.9rem;
   line-height: 1.4rem;
   transition: color 0.3s;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
 
   &:hover,
   &.router-link-active {
@@ -426,6 +443,7 @@ html.dark .search-box {
 }
 
 .icon-twist {
+
   &-enter-active,
   &-leave-active {
     transition: all 0.2s cubic-bezier(.68, -0.55, .27, 1.55);
@@ -450,7 +468,6 @@ html.dark .search-box {
 
 .page {
   flex: 1;
-  padding-top: var(--navbar-height);
   display: block;
 
   &-wrapper {

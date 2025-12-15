@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 4rem auto;
   margin-bottom: 0rem;
   padding: 1rem;

@@ -5,6 +5,7 @@ import { viteBundler } from '@vuepress/bundler-vite'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import customTheme from './theme/index.js'
+import { copyCodePlugin } from '@vuepress/plugin-copy-code'
 
 export default defineUserConfig({
   lang: 'zh-CN',
@@ -25,6 +26,7 @@ export default defineUserConfig({
   },
 
   plugins: [
+    copyCodePlugin(),
     searchPlugin({
       locales: {
         '/': {

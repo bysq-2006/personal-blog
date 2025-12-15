@@ -127,14 +127,14 @@ export default {
 <style scoped>
 .sidebar {
   position: fixed;
-  top: var(--navbar-height);
+  top: 0;
   left: 0;
   width: 16rem;
-  height: calc(100vh - var(--navbar-height));
-  overflow-y: auto;
+  height: 100vh;
   border-right: 1px solid var(--c-border);
   background-color: var(--c-bg);
   padding: 1.5rem;
+  padding-top: var(--navbar-height);
   box-sizing: border-box;
   transition: all 0.3s;
 }
@@ -244,7 +244,7 @@ details[open]>.toc-summary::before {
 
 /* H3 样式 - 增加缩进 */
 .toc-children .sidebar-link {
-  padding-left: 2rem;
+  padding-left: 3rem;
   font-size: 0.9rem;
   color: var(--c-text-light);
 }

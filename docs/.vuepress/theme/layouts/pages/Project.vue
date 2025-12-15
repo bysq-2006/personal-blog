@@ -11,7 +11,7 @@
           <div class="info-wrapper">
             <div class="name-row">
               <a :href="'https://github.com/' + userInfo.login" target="_blank" class="login-link">{{ userInfo.login
-                }}</a>
+              }}</a>
               <span class="name" v-if="userInfo.name">({{ userInfo.name }})</span>
             </div>
             <div class="bio" v-if="userInfo.bio">{{ userInfo.bio }}</div>
@@ -147,7 +147,7 @@ watch(() => projects.value, (newProjects) => {
         isLoaded: false
       }
     })
-    
+
     projectList.value = list
 
     // Load GitHub data for each project
@@ -209,7 +209,7 @@ onMounted(async () => {
   justify-content: center;
   gap: 3rem;
   margin-bottom: 3rem;
-  padding: 2rem;
+  padding: 2rem 0;
   border-radius: 10px;
   width: 90%;
   margin: 0 auto;

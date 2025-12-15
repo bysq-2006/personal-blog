@@ -1,9 +1,9 @@
 import { defineClientConfig } from 'vuepress/client'
-import Layout from './layouts/Layout.vue'
+import Layout from './layouts/Layout/Layout.vue'
 import NotFound from './layouts/NotFound.vue'
 import Home from './layouts/pages/Home.vue'
 import tools from './layouts/pages/tools.vue'
-import Article from './layouts/pages/Article.vue'
+import Article from './layouts/pages/Article/Article.vue'
 import project from './layouts/pages/project.vue'
 import CategoryWrapper from './components/CategoryWrapper.vue'
 

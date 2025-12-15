@@ -1,6 +1,7 @@
 ---
 date: 2024-12-12
 category:
+  - web
   - 前端开发
   - JavaScript
 ---

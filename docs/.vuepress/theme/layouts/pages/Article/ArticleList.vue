@@ -44,12 +44,9 @@ defineProps({
 </template>
 
 <style lang="scss">
-@use '@vuepress/theme-default/styles/mixins';
-
 .article {
   position: relative;
   box-sizing: border-box;
-  width: 100%;
   margin: 0 auto 1.5rem;
   padding: 1.5rem;
   border: 1px solid var(--c-border);
