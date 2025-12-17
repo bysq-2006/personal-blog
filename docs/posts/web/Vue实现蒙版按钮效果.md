@@ -22,7 +22,6 @@ tag:
 3.  **自适应**：按钮宽度不固定，需根据内容自适应。
 
 ## 效果展示
-没怎么对齐，将就看看吧~
 特意调慢了速度，方便观察效果。
 <div class="app">
   <h1>个人博客分类切换示范</h1>
@@ -33,7 +32,7 @@ tag:
         全部 <span class="count">10</span>
       </div>
       <div v-for="cat in categories" :key="cat" class="category-item active-state">
-        {{ cat }} <span class="count">{{ Math.floor(Math.random() * 20) + 1 }}</span>
+        {{ cat }} <span class="count">{{ 1 }}</span>
       </div>
     </div>
     <!-- 2. 默认状态层（底层，响应点击） -->
@@ -44,7 +43,7 @@ tag:
           class="category-item"
           :ref="(el) => categoryRefs[cat] = el as HTMLElement"
           @click="currentCategory = cat">
-      {{ cat }} <span class="count">{{ Math.floor(Math.random() * 20) + 1 }}</span>
+      {{ cat }} <span class="count">{{ 1 }}</span>
     </div>
   </div>
 </div>

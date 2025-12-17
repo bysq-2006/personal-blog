@@ -23,6 +23,7 @@
     "vuepress": "2.0.0-rc.20"
   },
   "dependencies": {
+    "compressorjs": "^1.2.1",
     "pixi.js": "^8.14.3",
     "three": "^0.182.0"
   },

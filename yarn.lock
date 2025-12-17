@@ -1777,6 +1777,7 @@ __metadata:
     "@vuepress/plugin-palette": "npm:^2.0.0-rc.0"
     "@vuepress/plugin-search": "npm:^2.0.0-rc.55"
     "@vuepress/theme-default": "npm:2.0.0-rc.88"
+    compressorjs: "npm:^1.2.1"
     pixi.js: "npm:^8.14.3"
     sass-embedded: "npm:^1.86.0"
     three: "npm:^0.182.0"
@@ -1895,6 +1896,13 @@ __metadata:
     inherits: "npm:^2.0.4"
     readable-stream: "npm:^3.4.0"
   checksum: 10c0/528a9c3d7d6b87af98c46f10a887654d027c28c503c7f7de87440e643f0056d7a2319a967762b8ec18150c64799d2825a277147a752a0570a7407c0b705b0d01
+  languageName: node
+  linkType: hard
+
+"blueimp-canvas-to-blob@npm:^3.29.0":
+  version: 3.29.0
+  resolution: "blueimp-canvas-to-blob@npm:3.29.0"
+  checksum: 10c0/6c44cf20aa8287d4b31b2a6133074add338e4b8de092d2f7072a48cd5e04dead04814ffd34607f71dd7b3a285b5c8322c2e8c17776cfa20a1357df395862d646
   languageName: node
   linkType: hard
 
@@ -2098,6 +2106,16 @@ __metadata:
   version: 0.5.2
   resolution: "colorjs.io@npm:0.5.2"
   checksum: 10c0/2e6ea43629e325e721b92429239de3a6f42fb6d88ba6e4c2aeff0288c196d876f2f7ee82aea95bd40072d5cdc8cb87f042f4d94c134dcabf0e34a717e4caacb9
+  languageName: node
+  linkType: hard
+
+"compressorjs@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "compressorjs@npm:1.2.1"
+  dependencies:
+    blueimp-canvas-to-blob: "npm:^3.29.0"
+    is-blob: "npm:^2.1.0"
+  checksum: 10c0/811eb37b7211af94da6e87df4986f1f8d07524bd762e913927469cede270a705c56de91000b0c190f4bdf059d601c81e259c4ff19efbf5cb34d97b87367b7c92
   languageName: node
   linkType: hard
 
@@ -2778,6 +2796,13 @@ __metadata:
   dependencies:
     binary-extensions: "npm:^2.0.0"
   checksum: 10c0/a16eaee59ae2b315ba36fad5c5dcaf8e49c3e27318f8ab8fa3cdb8772bf559c8d1ba750a589c2ccb096113bb64497084361a25960899cb6172a6925ab6123d38
+  languageName: node
+  linkType: hard
+
+"is-blob@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "is-blob@npm:2.1.0"
+  checksum: 10c0/324eb4dc16a359acf14c56c0f65a031c9ddb6ec8ca651894783abe3f3252688facd9e02edeb756eddca0c8ddb5b1efd0af97ea7d3c7b8567fc29fa75f9b1a159
   languageName: node
   linkType: hard
 

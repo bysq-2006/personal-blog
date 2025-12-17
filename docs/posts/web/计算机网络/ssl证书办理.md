@@ -3,6 +3,7 @@ title: ssl证书办理过程
 date: 2025-12-13
 category:
   - web
+  - 计算机网络
 ---
 
 ## 使用的开源项目

@@ -338,12 +338,15 @@ html.dark .search-box {
     transition: all 0.3s;
     transform-origin: center;
   }
+
   span:nth-child(1) {
     top: 5px;
   }
+
   span:nth-child(2) {
     top: 11px;
   }
+
   span:nth-child(3) {
     top: 17px;
   }
@@ -353,9 +356,11 @@ html.dark .search-box {
       top: 11px;
       transform: rotate(45deg);
     }
+
     span:nth-child(2) {
       opacity: 0;
     }
+
     span:nth-child(3) {
       top: 11px;
       transform: rotate(-45deg);
