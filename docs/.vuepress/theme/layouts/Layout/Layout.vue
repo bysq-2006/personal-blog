@@ -90,9 +90,11 @@ const toggleDarkMode = () => {
   const html = document.documentElement
   if (isDark.value) {
     html.classList.add('dark')
+    html.dataset.theme = 'dark'
     localStorage.setItem('theme', 'dark')
   } else {
     html.classList.remove('dark')
+    html.dataset.theme = 'light'
     localStorage.setItem('theme', 'light')
   }
 }
@@ -120,6 +122,9 @@ onMounted(() => {
   if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
     isDark.value = true
     document.documentElement.classList.add('dark')
+    document.documentElement.dataset.theme = 'dark'
+  } else {
+    document.documentElement.dataset.theme = 'light'
   }
   // 添加滚动监听
   window.addEventListener('scroll', handleScroll, { passive: true })
