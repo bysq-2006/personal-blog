@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "docs:dev": "vuepress dev docs",
-    "deploy": "vuepress build docs && node deploy.js",
+    "builddeploy": "vuepress build docs && node deploy.js",
     "docs:build": "vuepress build docs",
-    "docs:clean-dev": "vuepress dev docs --clean-cache",
+    "deploy": "node deploy.js",
     "docs:update-package": "yarn dlx vp-update"
   },
   "devDependencies": {
