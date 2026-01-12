@@ -6,6 +6,7 @@ import tools from './layouts/pages/tools.vue'
 import Article from './layouts/pages/Article/Article.vue'
 import project from './layouts/pages/project.vue'
 import CategoryWrapper from './components/CategoryWrapper.vue'
+import 'katex/dist/katex.min.css'
 
 export default defineClientConfig({
   layouts: {

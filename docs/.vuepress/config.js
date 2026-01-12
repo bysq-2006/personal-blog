@@ -6,13 +6,15 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import customTheme from './theme/index.js'
 import { copyCodePlugin } from '@vuepress/plugin-copy-code'
+import markdownItKatex from '@iktakahiro/markdown-it-katex'
 
 export default defineUserConfig({
   lang: 'zh-CN',
   title: '白银三清的博客',
   description: '',
   head: [
-    ['link', { rel: 'icon', href: '/icons/favicon.ico' }]
+    ['link', { rel: 'icon', href: '/icons/favicon.ico' }],
+    ['link', { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/katex@0.16.27/dist/katex.min.css' }]
   ],
 
   theme: customTheme({
@@ -23,6 +25,9 @@ export default defineUserConfig({
     headers: {
       level: [2, 3],
     },
+  },
+  extendsMarkdown: (md) => {
+    md.use(markdownItKatex)
   },
 
   plugins: [
