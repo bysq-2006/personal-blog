@@ -133,32 +133,32 @@ onMounted(() => {
 
 <style lang="scss">
 :root {
-  --c-brand: #0284c7;
-  --c-brand-light: #38bdf8;
-  --c-text: #334155;
-  --c-text-light: #64748b;
-  --c-text-lighter: #94a3b8;
-  --c-bg: #ffffff;
-  --c-bg-light: #f0f9ff;
-  --c-bg-lighter: #e0f2fe;
-  --c-border: #c1c7ce;
-  --c-border-dark: #cbd5e1;
+  --c-brand: #b85c38;
+  --c-brand-light: #d4744e;
+  --c-text: #1a1a2e;
+  --c-text-light: #4a4a6a;
+  --c-text-lighter: #8a8aaa;
+  --c-bg: #f5f0e8;
+  --c-bg-light: #ede8de;
+  --c-bg-lighter: #f0d8cc;
+  --c-border: #ddd8ce;
+  --c-border-dark: #c9c3b5;
 
   --navbar-height: 3.6rem;
 }
 
 html.dark {
-  --c-brand: #38bdf8;
-  --c-brand-light: #7dd3fc;
-  --c-text: #f1f5f9;
-  --c-text-light: #cbd5e1;
-  --c-text-lighter: #94a3b8;
-  --c-bg: #0f172a;
-  /* 暗黑背景：深蓝黑 */
-  --c-bg-light: #1e293b;
-  --c-bg-lighter: #334155;
-  --c-border: #334155;
-  --c-border-dark: #384454;
+  --c-brand: #d4744e;
+  --c-brand-light: #e89070;
+  --c-text: #f0ebe0;
+  --c-text-light: #b0a898;
+  --c-text-lighter: #706860;
+  --c-bg: #1e1a14;
+  /* 暗色背景：暖棕黑 */
+  --c-bg-light: #2a2419;
+  --c-bg-lighter: #3a2418;
+  --c-border: #2e2820;
+  --c-border-dark: #3e3628;
   /* 回到顶部按钮暗色模式 */
   --back-to-top-c-bg: var(--c-bg-light);
   --back-to-top-c-accent-bg: var(--c-brand);
@@ -168,7 +168,7 @@ html.dark {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
