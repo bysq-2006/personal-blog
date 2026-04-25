@@ -26,7 +26,7 @@
             >
               <svg viewBox="0 0 310 460" width="380" class="bookshelf-svg">
                 <!-- Shelf frame -->
-                <g :transform="`translate(${px * 0.3}, ${py * 0.3})`">
+                <g>
                   <rect x="58"  y="72"  width="194" height="330" rx="2" fill="oklch(88% 0.025 75)" />
                   <rect x="56"  y="68"  width="14"  height="336" rx="2" fill="oklch(72% 0.06 60)" />
                   <rect x="240" y="68"  width="14"  height="336" rx="2" fill="oklch(68% 0.055 60)" />
@@ -38,7 +38,7 @@
                 </g>
 
                 <!-- Books -->
-                <g :transform="`translate(${px * 0.6}, ${py * 0.5})`">
+                <g>
                   <g v-for="(b, i) in books" :key="i">
                     <rect :x="b.x" :y="b.y" :width="b.w" :height="b.h"
                       rx="1" :fill="b.color" opacity="0.88" />
@@ -53,7 +53,7 @@
                 </g>
 
                 <!-- Decorative objects -->
-                <g :transform="`translate(${px * 1.0}, ${py * 0.8})`">
+                <g>
                   <!-- Coffee cup -->
                   <g transform="translate(208, 352)">
                     <ellipse cx="14" cy="22" rx="12" ry="4" fill="oklch(78% 0.04 70)" />
@@ -172,6 +172,254 @@
           </div>
         </section>
 
+        <!-- ── GUITAR ──────────────────────────────── -->
+        <section id="guitar" class="guitar-section">
+          <div class="guitar-grid scroll-reveal" :class="{ visible: guitarVisible }">
+            <!-- Left: Guitar SVG -->
+            <div class="guitar-left">
+              <div class="guitar-glow" />
+              <svg viewBox="0 0 320 540" width="340" class="guitar-svg">
+                <!-- Headstock (Strat-style: angled, 6-in-line tuners) -->
+                <g>
+                  <path d="
+                    M 152 14
+                    L 200 18
+                    Q 210 24, 206 34
+                    Q 200 44, 190 46
+                    L 174 52
+                    L 146 52
+                    Z"
+                    fill="oklch(38% 0.06 42)" />
+                  <!-- 6 in-line tuning pegs -->
+                  <g fill="oklch(86% 0.02 80)">
+                    <circle cx="160" cy="24" r="2.4" />
+                    <circle cx="170" cy="26" r="2.4" />
+                    <circle cx="180" cy="28" r="2.4" />
+                    <circle cx="188" cy="32" r="2.4" />
+                    <circle cx="194" cy="38" r="2.4" />
+                    <circle cx="196" cy="44" r="2.4" />
+                  </g>
+                </g>
+
+                <!-- Nut -->
+                <rect x="146" y="52" width="28" height="3.5" fill="oklch(88% 0.02 80)" />
+
+                <!-- Neck (long, thin) -->
+                <rect x="146" y="55" width="28" height="220" fill="oklch(42% 0.06 42)" />
+                <!-- Frets -->
+                <g stroke="oklch(80% 0.02 80)" stroke-width="0.9" opacity="0.85">
+                  <line x1="146" y1="78"  x2="174" y2="78" />
+                  <line x1="146" y1="100" x2="174" y2="100" />
+                  <line x1="146" y1="122" x2="174" y2="122" />
+                  <line x1="146" y1="144" x2="174" y2="144" />
+                  <line x1="146" y1="166" x2="174" y2="166" />
+                  <line x1="146" y1="188" x2="174" y2="188" />
+                  <line x1="146" y1="210" x2="174" y2="210" />
+                  <line x1="146" y1="232" x2="174" y2="232" />
+                  <line x1="146" y1="254" x2="174" y2="254" />
+                </g>
+                <!-- Fret markers (Strat-style dots, on the side of the fretboard) -->
+                <g fill="oklch(86% 0.02 80)" opacity="0.9">
+                  <circle cx="160" cy="111" r="1.8" />
+                  <circle cx="160" cy="155" r="1.8" />
+                  <circle cx="160" cy="199" r="1.8" />
+                  <circle cx="160" cy="243" r="1.8" />
+                </g>
+
+                <!-- Body shadow -->
+                <path d="
+                  M 146 278
+                  L 174 278
+                  Q 198 280, 218 300
+                  Q 244 326, 246 366
+                  Q 248 416, 232 458
+                  Q 210 502, 160 504
+                  Q 110 502, 88 458
+                  Q 72 416, 74 366
+                  Q 76 326, 102 300
+                  Q 122 280, 146 278 Z"
+                  fill="oklch(50% 0.07 42)" opacity="0.18"
+                  transform="translate(3, 6)" />
+
+                <!-- Body: Stratocaster, no upper horns sticking up -->
+                <!--
+                  Smooth contour: neck joins at top center (y≈275),
+                  body widens gently outward to maximum width at the lower bout (y≈420),
+                  then curves back to bottom (y≈500).
+                -->
+                <path d="
+                  M 146 275
+                  L 174 275
+                  Q 196 278, 216 298
+                  Q 240 322, 242 360
+                  Q 244 410, 228 454
+                  Q 208 498, 160 500
+                  Q 112 498, 92 454
+                  Q 76 410, 78 360
+                  Q 80 322, 104 298
+                  Q 124 278, 146 275 Z"
+                  fill="var(--terra)" />
+
+                <!-- Inner shading (single flat darker shape) -->
+                <path d="
+                  M 148 286
+                  L 172 286
+                  Q 192 290, 208 306
+                  Q 230 326, 232 360
+                  Q 234 406, 220 446
+                  Q 202 486, 160 488
+                  Q 118 486, 100 446
+                  Q 86 406, 88 360
+                  Q 90 326, 112 306
+                  Q 128 290, 148 286 Z"
+                  fill="oklch(62% 0.14 30)" opacity="0.38" />
+
+                <!-- Pickguard (Strat 3-ply shape, follows body curves) -->
+                <path d="
+                  M 148 290
+                  L 172 290
+                  Q 188 294, 200 308
+                  Q 212 322, 210 344
+                  Q 208 372, 212 408
+                  Q 214 444, 192 466
+                  Q 174 478, 160 478
+                  Q 146 478, 128 466
+                  Q 106 444, 108 408
+                  Q 112 372, 110 344
+                  Q 108 322, 120 308
+                  Q 132 294, 148 290 Z"
+                  fill="oklch(94% 0.01 80)" />
+                <path d="
+                  M 148 290
+                  L 172 290
+                  Q 188 294, 200 308
+                  Q 212 322, 210 344
+                  Q 208 372, 212 408
+                  Q 214 444, 192 466
+                  Q 174 478, 160 478
+                  Q 146 478, 128 466
+                  Q 106 444, 108 408
+                  Q 112 372, 110 344
+                  Q 108 322, 120 308
+                  Q 132 294, 148 290 Z"
+                  fill="none" stroke="oklch(28% 0.02 40)" stroke-width="0.8" opacity="0.7" />
+
+                <!-- 3 single-coil pickups: neck / middle / bridge (bridge slanted) -->
+                <g>
+                  <!-- Neck pickup -->
+                  <rect x="140" y="316" width="40" height="9" rx="1.5"
+                    fill="oklch(96% 0.005 80)" stroke="oklch(28% 0.02 40)" stroke-width="0.6" />
+                  <g fill="oklch(28% 0.02 40)">
+                    <circle cx="146" cy="320.5" r="0.9" /><circle cx="153" cy="320.5" r="0.9" />
+                    <circle cx="160" cy="320.5" r="0.9" /><circle cx="167" cy="320.5" r="0.9" />
+                    <circle cx="174" cy="320.5" r="0.9" />
+                  </g>
+                  <!-- Middle pickup -->
+                  <rect x="140" y="358" width="40" height="9" rx="1.5"
+                    fill="oklch(96% 0.005 80)" stroke="oklch(28% 0.02 40)" stroke-width="0.6" />
+                  <g fill="oklch(28% 0.02 40)">
+                    <circle cx="146" cy="362.5" r="0.9" /><circle cx="153" cy="362.5" r="0.9" />
+                    <circle cx="160" cy="362.5" r="0.9" /><circle cx="167" cy="362.5" r="0.9" />
+                    <circle cx="174" cy="362.5" r="0.9" />
+                  </g>
+                  <!-- Bridge pickup (slanted) -->
+                  <rect x="138" y="402" width="44" height="9" rx="1.5"
+                    fill="oklch(96% 0.005 80)" stroke="oklch(28% 0.02 40)" stroke-width="0.6"
+                    transform="rotate(-9, 160, 406.5)" />
+                </g>
+
+                <!-- 5-way selector switch -->
+                <g transform="translate(192, 392)">
+                  <rect x="-2" y="-2" width="4" height="14" rx="1" fill="oklch(28% 0.02 40)" />
+                  <circle cx="0" cy="-4" r="2.4" fill="oklch(94% 0.005 80)"
+                    stroke="oklch(28% 0.02 40)" stroke-width="0.6" />
+                </g>
+
+                <!-- 1 volume + 2 tone knobs in a diagonal line (Strat layout) -->
+                <g>
+                  <circle cx="184" cy="408" r="4.6" fill="oklch(94% 0.005 80)"
+                    stroke="oklch(28% 0.02 40)" stroke-width="0.6" />
+                  <circle cx="192" cy="428" r="4.6" fill="oklch(94% 0.005 80)"
+                    stroke="oklch(28% 0.02 40)" stroke-width="0.6" />
+                  <circle cx="198" cy="448" r="4.6" fill="oklch(94% 0.005 80)"
+                    stroke="oklch(28% 0.02 40)" stroke-width="0.6" />
+                  <line x1="184" y1="403" x2="184" y2="408" stroke="oklch(28% 0.02 40)" stroke-width="1" />
+                  <line x1="192" y1="423" x2="192" y2="428" stroke="oklch(28% 0.02 40)" stroke-width="1" />
+                  <line x1="198" y1="443" x2="198" y2="448" stroke="oklch(28% 0.02 40)" stroke-width="1" />
+                </g>
+
+                <!-- Bridge: Strat synchronized tremolo plate + 6 saddles + tremolo arm -->
+                <g>
+                  <rect x="134" y="436" width="52" height="13" rx="1"
+                    fill="oklch(82% 0.02 80)" />
+                  <g fill="oklch(60% 0.02 80)">
+                    <rect x="137" y="438" width="6" height="9" rx="0.5" />
+                    <rect x="144" y="438" width="6" height="9" rx="0.5" />
+                    <rect x="151" y="438" width="6" height="9" rx="0.5" />
+                    <rect x="158" y="438" width="6" height="9" rx="0.5" />
+                    <rect x="165" y="438" width="6" height="9" rx="0.5" />
+                    <rect x="172" y="438" width="6" height="9" rx="0.5" />
+                  </g>
+                  <!-- Tremolo arm -->
+                  <path d="M 142 449 Q 132 458, 124 478" stroke="oklch(82% 0.02 80)"
+                    stroke-width="1.6" fill="none" stroke-linecap="round" />
+                  <circle cx="124" cy="478" r="2.2" fill="oklch(82% 0.02 80)" />
+                </g>
+
+                <!-- Output jack on the lower side -->
+                <circle cx="226" cy="430" r="4" fill="oklch(82% 0.02 80)" />
+                <circle cx="226" cy="430" r="2" fill="oklch(28% 0.02 40)" />
+
+                <!-- Strings (nut to bridge, gently fanning to match bridge spacing) -->
+                <g stroke="oklch(88% 0.015 80)" stroke-width="0.8" opacity="0.9">
+                  <line x1="148" y1="56" x2="140" y2="436" />
+                  <line x1="152" y1="56" x2="148" y2="436" />
+                  <line x1="156" y1="56" x2="156" y2="436" />
+                  <line x1="164" y1="56" x2="164" y2="436" />
+                  <line x1="168" y1="56" x2="172" y2="436" />
+                  <line x1="172" y1="56" x2="180" y2="436" />
+                </g>
+
+                <!-- Floating notes -->
+                <g class="note-float-a" fill="var(--terra)" opacity="0.75">
+                  <text x="36" y="140" font-size="22" font-family="serif">♪</text>
+                </g>
+                <g class="note-float-b" fill="var(--sage)" opacity="0.7">
+                  <text x="276" y="220" font-size="18" font-family="serif">♫</text>
+                </g>
+                <g class="note-float-c" fill="var(--terra)" opacity="0.6">
+                  <text x="28" y="320" font-size="14" font-family="serif">♩</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Right: Copy -->
+            <div class="guitar-right">
+              <div class="guitar-eyebrow">Off the keyboard</div>
+              <h2 class="guitar-title">
+                偶尔，<br />
+                也<em>弹一弹</em>吉他。
+              </h2>
+              <p class="guitar-body">
+                写代码写累了，会插上音箱、抓起电吉他随便扫几下。算不上专业——速弹跟不上、推弦也不够稳——但失真一开，整个人的烦躁能被一段 riff 吃掉大半。
+              </p>
+              <p class="guitar-body">
+                最近在啃《华丽的友谊乐章》，左手切换有点跟不上，但每弹通一小段都很上头。
+              </p>
+              <div class="guitar-meta">
+                <div class="meta-item">
+                  <span class="meta-key">Now playing</span>
+                  <span class="meta-val">《华丽的友谊乐章》</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-key">My guitar</span>
+                  <span class="meta-val">Squier Stratocaster</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <hr class="divider" />
 
       </div>
@@ -275,19 +523,28 @@ const stats = [
 
 // ── Scroll reveal ───────────────────────────────
 const aboutVisible = ref(false)
+const guitarVisible = ref(false)
 let observer = null
 
 onMounted(() => {
   tTimer = setTimeout(tick, 900)
 
-  const target = document.querySelector('#about .about-grid')
-  if (target && 'IntersectionObserver' in window) {
+  if ('IntersectionObserver' in window) {
     observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) aboutVisible.value = true })
+      entries.forEach(e => {
+        if (!e.isIntersecting) return
+        if (e.target.matches('#about .about-grid')) aboutVisible.value = true
+        if (e.target.matches('#guitar .guitar-grid')) guitarVisible.value = true
+      })
     }, { threshold: 0.15 })
-    observer.observe(target)
+
+    const aboutTarget = document.querySelector('#about .about-grid')
+    if (aboutTarget) observer.observe(aboutTarget)
+    const guitarTarget = document.querySelector('#guitar .guitar-grid')
+    if (guitarTarget) observer.observe(guitarTarget)
   } else {
     aboutVisible.value = true
+    guitarVisible.value = true
   }
 })
 
@@ -636,6 +893,131 @@ onUnmounted(() => {
   border-top: 1px solid var(--rule);
 }
 
+// ── GUITAR ─────────────────────────────────────
+.guitar-section {
+  padding: 60px 80px 100px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.guitar-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.guitar-left {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guitar-glow {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(78% 0.1 60 / 0.28) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.guitar-svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 22px 40px rgba(0, 0, 0, 0.14));
+}
+
+.guitar-right {
+  padding-right: 20px;
+}
+
+.guitar-eyebrow {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--terra);
+  margin-bottom: 20px;
+}
+
+.guitar-title {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 24px;
+  color: var(--ink);
+
+  em {
+    font-style: italic;
+    color: var(--terra);
+  }
+}
+
+.guitar-body {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--ink2);
+  margin: 0 0 16px;
+}
+
+.guitar-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 18px 22px;
+  background: var(--bg2);
+  border-left: 2px solid var(--sage);
+}
+
+.meta-item {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-size: 13px;
+}
+
+.meta-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  min-width: 96px;
+}
+
+.meta-val {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: var(--ink2);
+}
+
+:deep(.note-float-a) {
+  transform-origin: center;
+  animation: noteFloatA 5s ease-in-out infinite;
+}
+:deep(.note-float-b) {
+  animation: noteFloatB 6s ease-in-out 0.8s infinite;
+}
+:deep(.note-float-c) {
+  animation: noteFloatA 4.5s ease-in-out 1.6s infinite;
+}
+
+@keyframes noteFloatA {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.75; }
+  50%      { transform: translateY(-14px) rotate(6deg); opacity: 1; }
+}
+@keyframes noteFloatB {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+  50%      { transform: translateY(-10px) rotate(-5deg); opacity: 1; }
+}
+
 // ── Scroll reveal ──────────────────────────────
 .scroll-reveal {
   opacity: 0;
@@ -749,6 +1131,29 @@ html.dark {
   .about-grid {
     grid-template-columns: 1fr;
     gap: 48px;
+  }
+
+  .guitar-section {
+    padding: 40px 32px 60px;
+  }
+
+  .guitar-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    text-align: center;
+  }
+
+  .guitar-svg {
+    width: 260px;
+    height: auto;
+  }
+
+  .guitar-right {
+    padding-right: 0;
+  }
+
+  .meta-item {
+    justify-content: center;
   }
 }
 </style>
