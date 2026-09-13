@@ -1,23 +1,23 @@
 {
-  "building": "./assets/models/building/home.glb",
+  "building": "../docs/.vuepress/public/paper-home/models/building/home.glb",
   "catalog": {
     "houseplant": {
-      "url": "./assets/models/plants/houseplant.glb",
+      "url": "../docs/.vuepress/public/paper-home/models/plants/houseplant.glb",
       "height": 0.028,
       "width": 0.026
     },
     "potted-plant": {
-      "url": "./assets/models/plants/potted-plant.glb",
+      "url": "../docs/.vuepress/public/paper-home/models/plants/potted-plant.glb",
       "height": 0.026,
       "width": 0.024
     },
     "succulent": {
-      "url": "./assets/models/plants/succulent.glb",
+      "url": "../docs/.vuepress/public/paper-home/models/plants/succulent.glb",
       "height": 0.022,
       "width": 0.02
     },
     "laptop": {
-      "url": "./assets/models/props/laptop.glb",
+      "url": "../docs/.vuepress/public/paper-home/models/props/laptop.glb",
       "height": 0.016,
       "width": 0.03
     }

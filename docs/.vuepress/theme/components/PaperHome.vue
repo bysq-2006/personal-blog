@@ -7,15 +7,19 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
 import layout from '@paper-home/layout.json'
-import buildingUrl from '@paper-home/assets/models/building/home.glb?url'
-import houseplantUrl from '@paper-home/assets/models/plants/houseplant.glb?url'
-import pottedPlantUrl from '@paper-home/assets/models/plants/potted-plant.glb?url'
-import succulentUrl from '@paper-home/assets/models/plants/succulent.glb?url'
-import laptopUrl from '@paper-home/assets/models/props/laptop.glb?url'
-import coastUrl from '@paper-home/assets/sprites/coast.png?url'
-import cloud1Url from '@paper-home/assets/sprites/cloud-1.png?url'
-import cloud2Url from '@paper-home/assets/sprites/cloud-2.png?url'
-import cloud3Url from '@paper-home/assets/sprites/cloud-3.png?url'
+
+const asset = (p) => `${import.meta.env.BASE_URL}${p}`
+const buildingUrl = asset('paper-home/models/building/home.glb')
+const houseplantUrl = asset('paper-home/models/plants/houseplant.glb')
+const pottedPlantUrl = asset('paper-home/models/plants/potted-plant.glb')
+const succulentUrl = asset('paper-home/models/plants/succulent.glb')
+const laptopUrl = asset('paper-home/models/props/laptop.glb')
+const coastUrl = asset('paper-home/sprites/coast.png')
+const cloud1Url = asset('paper-home/sprites/cloud-1.png')
+const cloud2Url = asset('paper-home/sprites/cloud-2.png')
+const cloud3Url = asset('paper-home/sprites/cloud-3.png')
+const catVideoUrl = asset('video/cat-sleep.webm')
+const birdVideoUrl = asset('video/bird.webm')
 
 const VIEW_ORDER = ['home', 'floor_1', 'floor_2', 'floor_3', 'floor_4']
 
@@ -82,6 +86,8 @@ onMounted(async () => {
       cloud2: cloud2Url,
       cloud3: cloud3Url,
     },
+    catVideoUrl,
+    birdVideoUrl,
   })
   const canvas = api.canvas
   host.value.addEventListener('wheel', onWheel, { passive: true })

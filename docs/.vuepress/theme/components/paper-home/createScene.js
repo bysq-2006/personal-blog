@@ -33,7 +33,7 @@ const SUN_DIR = new THREE.Vector3(1.53, 0.574, -2.79).normalize()
 const COAST_LINE_Z = -14.53
 const WATER_FAR_Z = -16.6
 
-export async function createScene(el, { layout, buildingUrl, catalogUrls, sprites }) {
+export async function createScene(el, { layout, buildingUrl, catalogUrls, sprites, catVideoUrl, birdVideoUrl }) {
   // —— 渲染器 ——
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
@@ -227,6 +227,57 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     scene.add(wrap)
   }
 
+  // —— 场景里的小动物（透明背景视频，纸片朝固定方向，不跟镜头转） ——
+  // 想挪位置/改大小，调对应那一行的 pos 与 w 即可。
+  // 朝向固定为初始 home 机位；点开电脑切镜头时不会跟着转过来。
+  // 单独放在 critterScene，最后叠加在纸纹后处理之上，避免被建筑描边“穿透”。
+  const critterScene = new THREE.Scene()
+  const CRITTERS = [
+    { url: catVideoUrl, pos: { x: -0.12517886111834217, y: 0.967333898955255, z: 0.10696331767205368 }, w: 0.075 },
+    { url: birdVideoUrl, pos: { x: 0.22241730340882865, y: 0.712215033815948, z: 0.11625011155843612 }, w: 0.05 },
+  ]
+  const homeCamPos = new THREE.Vector3().fromArray(layout.homeCamera.position)
+  const critterVideos = []
+  const critterTextures = []
+  for (const critter of CRITTERS) {
+    if (!critter.url) continue
+    const video = document.createElement('video')
+    video.src = critter.url
+    video.muted = true
+    video.loop = true
+    video.autoplay = true
+    video.playsInline = true
+    video.setAttribute('playsinline', '')
+    video.setAttribute('muted', '')
+    video.preload = 'auto'
+    video.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;'
+    el.appendChild(video)
+    const texture = new THREE.VideoTexture(video)
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.minFilter = THREE.LinearFilter
+    texture.magFilter = THREE.LinearFilter
+    const aspect = (video.videoWidth || 672) / (video.videoHeight || 448)
+    const planeH = critter.w / aspect
+    const geometry = new THREE.PlaneGeometry(critter.w, planeH)
+    geometry.translate(0, planeH / 2, 0) // 以底边中心为锚点
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      side: THREE.DoubleSide,
+    }))
+    mesh.position.set(critter.pos.x, critter.pos.y, critter.pos.z)
+    const dir = new THREE.Vector3().subVectors(homeCamPos, mesh.position)
+    mesh.rotation.y = Math.atan2(dir.x, dir.z)
+    critterScene.add(mesh)
+    const play = () => video.play().catch(() => {})
+    video.addEventListener('loadeddata', play)
+    play()
+    critterVideos.push(video)
+    critterTextures.push(texture)
+  }
+
   const raycaster = new THREE.Raycaster()
   const ndc = new THREE.Vector2()
   const hitLaptop = (e) => {
@@ -363,6 +414,10 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
   sketch.uniforms.tNormal.value = normalRT.texture
   sketch.uniforms.tDepth.value = depthRT.texture
   composer.addPass(sketch)
+  const critterPass = new RenderPass(critterScene, camera)
+  critterPass.clear = false
+  critterPass.clearDepth = false
+  composer.addPass(critterPass)
   composer.addPass(new OutputPass())
 
   const resizeBuffers = (w, h) => {
@@ -412,6 +467,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     raf = requestAnimationFrame(tick)
     placeSun()
     waterMat.uniforms.time.value = performance.now() * 0.001
+    if (critterTextures.length) for (const tex of critterTextures) tex.needsUpdate = true
     renderBuffers()
     sketch.uniforms.tNormal.value = normalRT.texture
     sketch.uniforms.tDepth.value = depthRT.texture
@@ -448,6 +504,13 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
       cssRenderer.domElement.remove()
       hintStyle.remove()
       text.dispose()
+      for (const video of critterVideos) {
+        video.pause()
+        video.removeAttribute('src')
+        video.load()
+        video.remove()
+      }
+      for (const tex of critterTextures) tex.dispose()
     },
   }
 }
