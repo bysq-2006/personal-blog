@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>paper-home</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #efe6d6; font-family: ui-sans-serif, system-ui, sans-serif; }
+    canvas { display: block; }
+    #hud {
+      position: fixed; left: 16px; bottom: 16px; z-index: 2;
+      color: rgba(70,62,52,.75); font-size: 12px;
+      background: rgba(255,250,240,.55); backdrop-filter: blur(8px);
+      border: 1px solid rgba(90,70,50,.12); border-radius: 10px; padding: 10px 12px;
+      pointer-events: none;
+    }
+    #status {
+      position: fixed; left: 50%; top: 46%; transform: translate(-50%,-50%);
+      color: #5c5348; font-size: 14px; z-index: 3; text-align: center;
+    }
+    #status small { display: block; margin-top: 8px; color: #8a8074; font-size: 12px; }
+    #pins {
+      position: fixed; right: 16px; top: 16px; z-index: 2;
+      width: 280px; max-height: calc(100% - 32px); overflow: auto;
+      color: #4a433a; font-size: 12px;
+      background: rgba(255,250,240,.88); backdrop-filter: blur(10px);
+      border: 1px solid rgba(90,70,50,.14); border-radius: 12px; padding: 12px;
+    }
+    #pins h2 { margin: 0 0 8px; font-size: 13px; font-weight: 650; }
+    #pins .hint { color: #7a7268; margin-bottom: 10px; line-height: 1.45; }
+    #pins label { display: block; margin: 8px 0 3px; color: #6b645a; }
+    #pins .xyz { display: grid; grid-template-columns: 22px 1fr 22px 1fr; gap: 4px 6px; align-items: center; }
+    #pins .xyz span { color: #8a8074; }
+    #pins .xyz input {
+      width: 100%; box-sizing: border-box; font: inherit; font-size: 11px;
+      border: 1px solid rgba(90,70,50,.18); border-radius: 6px;
+      padding: 3px 5px; background: rgba(255,255,255,.55); color: inherit;
+    }
+    #pin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    #pin-list li {
+      border: 1px solid rgba(90,70,50,.12); border-radius: 8px; padding: 8px;
+      background: rgba(255,255,255,.35);
+    }
+    #pin-list input {
+      width: 100%; box-sizing: border-box; border: 0; background: transparent;
+      font: inherit; color: inherit; outline: none; font-weight: 600;
+    }
+    #pin-list code { display: block; margin-top: 4px; color: #6b645a; font-size: 11px; word-break: break-all; }
+    #pin-list button { margin-top: 6px; font: inherit; font-size: 11px; cursor: pointer; }
+    #pin-list .open { margin-right: 6px; }
+    #pins .row { display: flex; gap: 6px; margin-top: 10px; }
+    #pins .row button { flex: 1; font: inherit; font-size: 12px; cursor: pointer; padding: 6px 8px; }
+    .pin-label {
+      position: absolute; transform: translate(-50%, -120%);
+      pointer-events: auto; z-index: 1; cursor: pointer;
+      font-size: 11px; color: #3f3a34;
+      background: rgba(255,250,240,.9); border: 1px solid rgba(90,70,50,.18);
+      border-radius: 999px; padding: 2px 7px; white-space: nowrap;
+    }
+    #editor {
+      display: none; position: fixed; left: 16px; top: 16px; z-index: 4;
+      width: 260px; max-height: calc(100% - 32px); overflow: auto;
+      color: #4a433a; font-size: 12px;
+      background: rgba(255,250,240,.94); backdrop-filter: blur(10px);
+      border: 1px solid rgba(90,70,50,.16); border-radius: 12px; padding: 12px;
+    }
+    #editor.open { display: block; }
+    #editor h2 { margin: 0 0 8px; font-size: 13px; font-weight: 650; }
+    #editor label { display: block; margin: 8px 0 3px; color: #6b645a; }
+    #editor input, #editor select {
+      width: 100%; box-sizing: border-box; font: inherit;
+      border: 1px solid rgba(90,70,50,.18); border-radius: 6px;
+      padding: 5px 7px; background: rgba(255,255,255,.55);
+    }
+    #editor .xyz { display: grid; grid-template-columns: 18px 1fr; gap: 4px 6px; align-items: center; }
+    #editor .xyz span { color: #8a8074; }
+    #editor .modes { display: flex; gap: 6px; margin: 10px 0 4px; }
+    #editor .modes button, #editor .foot button {
+      flex: 1; font: inherit; font-size: 12px; cursor: pointer; padding: 6px 8px;
+    }
+    #editor .modes button.active { outline: 2px solid #2a221c; }
+    #editor .foot { display: flex; gap: 6px; margin-top: 10px; }
+    #floors {
+      position: fixed; left: 16px; bottom: 56px; z-index: 2;
+      width: 108px;
+      display: flex; flex-direction: column; gap: 6px;
+      box-sizing: border-box;
+    }
+    #floors label {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 11px; color: #6b645a;
+      background: rgba(255,250,240,.88);
+      border: 1px solid rgba(90,70,50,.14); border-radius: 10px;
+      padding: 7px 10px;
+      box-sizing: border-box;
+    }
+    #floors input {
+      width: 100%; box-sizing: border-box; font: inherit; font-size: 12px;
+      border: 1px solid rgba(90,70,50,.18); border-radius: 6px;
+      padding: 5px 6px; background: rgba(255,255,255,.55); color: #4a433a;
+    }
+    #floor-btns { display: flex; flex-direction: column; gap: 6px; }
+    #floors .sep {
+      height: 1px; background: rgba(90,70,50,.16); margin: 4px 8px;
+    }
+    #floors button {
+      font: inherit; font-size: 12px; cursor: pointer;
+      padding: 7px 10px; width: 100%; text-align: left;
+      box-sizing: border-box;
+      color: #4a433a; background: rgba(255,250,240,.88);
+      border: 1px solid rgba(90,70,50,.14); border-radius: 10px;
+    }
+    #floors button.active { outline: 2px solid #2a221c; }
+    #btn-home { font-weight: 650; }
+    #floors .toggle {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: #6b645a; cursor: pointer;
+      background: rgba(255,250,240,.88);
+      border: 1px solid rgba(90,70,50,.14); border-radius: 10px;
+      padding: 7px 10px;
+      box-sizing: border-box;
+    }
+    #floors .toggle input { accent-color: #2a221c; margin: 0; }
+    body.ui-hidden #hud,
+    body.ui-hidden #pins,
+    body.ui-hidden #floors,
+    body.ui-hidden #editor,
+    body.ui-hidden .pin-label { display: none !important; }
+    #ui-show {
+      display: none; position: fixed; left: 16px; bottom: 16px; z-index: 5;
+      font: inherit; font-size: 12px; cursor: pointer;
+      padding: 7px 12px; color: #4a433a;
+      background: rgba(255,250,240,.88);
+      border: 1px solid rgba(90,70,50,.14); border-radius: 10px;
+    }
+    body.ui-hidden #ui-show { display: block; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="status">加载模型中…<small>线稿纸纹渲染</small></div>
+  <div id="hud">左键旋转 · 滚轮缩放 · 中键平移 · 单击打点打开弹窗</div>
+  <nav id="floors">
+    <button type="button" id="btn-home">首页</button>
+    <button type="button" id="btn-github">查看 github</button>
+    <div class="sep"></div>
+    <label>一层高度
+      <input id="floor-height" type="number" step="0.001" />
+    </label>
+    <div id="floor-btns"></div>
+    <div class="sep"></div>
+    <label class="toggle">
+      <input type="checkbox" id="sway-toggle" />
+      视差摇晃
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="ui-hide-toggle" />
+      隐藏控件
+    </label>
+  </nav>
+  <button type="button" id="ui-show">显示控件</button>
+  <aside id="pins">
+    <h2>位置标注</h2>
+    <div class="hint">单击楼面打点。弹窗里可选已有模型，或临时加载本地 GLB 摆上去。</div>
+    <ul id="pin-list"></ul>
+    <div class="row">
+      <button type="button" id="copy-pins">复制 JSON</button>
+      <button type="button" id="clear-pins">清空</button>
+    </div>
+    <div class="row">
+      <button type="button" id="copy-camera">复制摄像机</button>
+    </div>
+    <label>摄像机位置</label>
+    <div class="xyz">
+      <span>X</span><input id="cam-x" type="number" step="0.001" />
+      <span>Y</span><input id="cam-y" type="number" step="0.001" />
+      <span>Z</span><input id="cam-z" type="number" step="0.001" />
+    </div>
+    <label>摄像机角度（度，俯仰 / 偏航 / 滚转）</label>
+    <div class="xyz">
+      <span>RX</span><input id="cam-rx" type="number" step="0.1" />
+      <span>RY</span><input id="cam-ry" type="number" step="0.1" />
+      <span>RZ</span><input id="cam-rz" type="number" step="0.1" />
+    </div>
+  </aside>
+  <div id="editor">
+    <h2 id="ed-title">编辑摆放</h2>
+    <label>模型</label>
+    <select id="ed-kind">
+      <option value="">（不放模型）</option>
+    </select>
+    <label>或临时加载 GLB</label>
+    <input id="ed-file" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" />
+    <label>高度 / 宽度</label>
+    <div class="xyz">
+      <span>H</span><input id="ed-h" type="number" step="0.001" />
+      <span>W</span><input id="ed-w" type="number" step="0.001" />
+    </div>
+    <label>位置</label>
+    <div class="xyz">
+      <span>X</span><input id="ed-x" type="number" step="0.001" />
+      <span>Y</span><input id="ed-y" type="number" step="0.001" />
+      <span>Z</span><input id="ed-z" type="number" step="0.001" />
+    </div>
+    <label>角度（度）</label>
+    <div class="xyz">
+      <span>RX</span><input id="ed-rx" type="number" step="1" />
+      <span>RY</span><input id="ed-ry" type="number" step="1" />
+      <span>RZ</span><input id="ed-rz" type="number" step="1" />
+    </div>
+    <div class="modes">
+      <button type="button" id="ed-move" class="active">拖动位置</button>
+      <button type="button" id="ed-rot">拖动旋转</button>
+    </div>
+    <div class="foot">
+      <button type="button" id="ed-copy">复制此条</button>
+      <button type="button" id="ed-close">关闭</button>
+    </div>
+  </div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+    const LAYOUT_URL = './layout.json';
+    const PAPER = new THREE.Color('#efe6d6');
+    const creaseLines = [];
+    const pickMeshes = [];
+    const pins = [];
+    let pinSeq = 1;
+    let buildingRoot = null;
+    let layoutData = null;
+    let activePin = null;
+    let fillingEditor = false;
+    let camAnim = null;
+    let floorShots = [];
+    let activeFloor = 0;
+    let viewMode = 'home';
+    let swayOn = false;
+    const swayMouse = { x: 0, y: 0 };
+    const sway = { x: 0, y: 0 };
+    const swayOffset = new THREE.Vector3();
+    const swaySph = new THREE.Spherical();
+    const swayBasePos = new THREE.Vector3();
+    const swayBaseQuat = new THREE.Quaternion();
+    let swayHasBase = false;
+    const FLOOR_LABELS = ['顶层', '2层', '3层', '4层', '底层'];
+    const pinGroup = new THREE.Group();
+    pinGroup.name = 'pins';
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const ndc = new THREE.Vector3();
+    let downX = 0;
+    let downY = 0;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.shadowMap.enabled = false;
+    renderer.setClearColor(PAPER, 1);
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = PAPER;
+    scene.add(pinGroup);
+
+    const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 400);
+    camera.position.set(8, 4, 12);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enableRotate = true;
+    controls.enablePan = true;
+    controls.mouseButtons = {
+      LEFT: THREE.MOUSE.ROTATE,
+      MIDDLE: THREE.MOUSE.PAN,
+      RIGHT: -1,
+    };
+    controls.minPolarAngle = 0.08;
+    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.enableZoom = false;
+    controls.target.set(0, 2, 0);
+    renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+    renderer.domElement.addEventListener('wheel', (event) => {
+      if (!controls.enabled) return;
+      event.preventDefault();
+      const pos = swayHasBase ? swayBasePos : camera.position;
+      swayOffset.copy(pos).sub(controls.target);
+      const r = THREE.MathUtils.clamp(
+        swayOffset.length() * Math.exp(event.deltaY * 0.0012),
+        Math.max(controls.minDistance, 0.02),
+        controls.maxDistance || 20
+      );
+      if (swayOffset.lengthSq() < 1e-12) return;
+      swayOffset.setLength(r);
+      swayBasePos.copy(controls.target).add(swayOffset);
+      swayBaseQuat.copy(camera.quaternion);
+      swayHasBase = true;
+      camera.position.copy(swayBasePos);
+    }, { passive: false });
+
+    const transform = new TransformControls(camera, renderer.domElement);
+    transform.setSize(0.55);
+    transform.setSpace('world');
+    transform.addEventListener('dragging-changed', (e) => {
+      controls.enabled = !e.value;
+    });
+    transform.addEventListener('change', () => {
+      if (!activePin?.mesh) return;
+      syncPinFromWrap(activePin);
+      if (!fillingEditor) fillEditor(activePin);
+    });
+    scene.add(transform.getHelper());
+
+    scene.add(new THREE.AmbientLight('#fff7ea', 1.35));
+    const key = new THREE.DirectionalLight('#fff4e4', 0.22);
+    key.position.set(-4, 10, 8);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight('#f2ebe0', 0.18);
+    fill.position.set(6, 4, 3);
+    scene.add(fill);
+
+    const sunDir = new THREE.Vector3(1.53, 0.574, -2.79).normalize();
+    const COAST_LINE_Z = -14.53;
+    const WATER_FAR_Z = -16.6;
+    const waterMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      uniforms: {
+        time: { value: 0 },
+        waterColor: { value: new THREE.Color('#fbe9d1') },
+        lineColor: { value: new THREE.Color('#c4b6a4') },
+        glintColor: { value: new THREE.Color('#fff8ee') },
+        sunDir: { value: sunDir },
+        coastZ: { value: COAST_LINE_Z },
+      },
+      vertexShader: /* glsl */`
+        varying vec3 vWorldPos;
+        void main() {
+          vec4 w = modelMatrix * vec4(position, 1.0);
+          vWorldPos = w.xyz;
+          gl_Position = projectionMatrix * viewMatrix * w;
+        }
+      `,
+      fragmentShader: /* glsl */`
+        uniform float time;
+        uniform vec3 waterColor;
+        uniform vec3 lineColor;
+        uniform vec3 glintColor;
+        uniform vec3 sunDir;
+        uniform float coastZ;
+        varying vec3 vWorldPos;
+
+        float hash(float n) {
+          return fract(sin(n * 127.1) * 43758.5453);
+        }
+
+        float layer(float z, float x, float t, float freq, float speed, float thresh, float width) {
+          float drift = 0.18 * sin(x * 0.41 + t * 0.14) + 0.09 * sin(x * 0.93 + t * 0.07);
+          float u = z * freq + t * speed + drift;
+          float id = floor(u);
+          float f = fract(u);
+          float alive = step(thresh, hash(id + freq * 13.0));
+          float pulse = 0.4 + 0.6 * sin(t * (0.28 + hash(id) * 0.55) + hash(id + 4.2) * 6.28318);
+          pulse = smoothstep(0.12, 0.88, pulse);
+          float stroke = 1.0 - smoothstep(0.0, width, abs(f - 0.5));
+          float span = 0.35 + 0.65 * hash(id + 8.1);
+          float cut = smoothstep(0.0, 0.12, fract(x * (0.08 + hash(id) * 0.05) + hash(id + 2.3)));
+          return stroke * alive * pulse * span * mix(0.45, 1.0, cut);
+        }
+
+        float sunGlints(vec2 xz, float t) {
+          vec2 az = sunDir.xz;
+          float azLen = length(az);
+          if (azLen < 1e-4) return 0.0;
+          az /= azLen;
+          vec2 perp = vec2(-az.y, az.x);
+          vec2 toP = xz - cameraPosition.xz;
+          float along = dot(toP, az);
+          float across = dot(toP, perp);
+          if (along < 0.4) return 0.0;
+          float acc = 0.0;
+          for (int i = 0; i < 3; i++) {
+            float fi = float(i);
+            float freq = 1.55 + fi * 0.85;
+            float u = along * freq + t * (0.11 + fi * 0.04);
+            float id = floor(u);
+            float f = fract(u);
+            float mid = 1.0 - abs(f - 0.5) * 2.0;
+            mid = pow(max(mid, 0.0), 1.35);
+            float alive = step(0.22 + fi * 0.08, hash(id + 19.0 + fi));
+            float wobble = sin(t * (0.7 + hash(id) * 1.1) + hash(id + 3.1) * 6.28)
+                         * (0.035 + hash(id + 7.0) * 0.05);
+            wobble += sin(t * 1.7 + id) * 0.012;
+            float halfW = mix(0.002, 0.055 + fi * 0.008, mid);
+            float body = 1.0 - smoothstep(0.0, halfW, abs(across - wobble));
+            float pulse = 0.55 + 0.45 * sin(t * (1.2 + hash(id + 5.0)) + hash(id) * 6.28);
+            acc = max(acc, body * alive * mid * pulse);
+          }
+          float pillar = exp(-across * across * 7.0);
+          return acc * mix(0.35, 1.0, pillar);
+        }
+
+        void main() {
+          vec2 xz = vWorldPos.xz;
+          float dist = length(xz - cameraPosition.xz);
+          float t = time;
+          float l1 = layer(xz.y, xz.x, t, 1.15, 0.042, 0.08, 0.028);
+          float l2 = layer(xz.y, xz.x, t * 1.11, 1.9, 0.058, 0.14, 0.022);
+          float l3 = layer(xz.y, xz.x, t * 0.91, 2.8, 0.07, 0.22, 0.016);
+          float l4 = layer(xz.y, xz.x, t * 1.23, 4.1, 0.09, 0.32, 0.012);
+          float l5 = layer(xz.y, xz.x, t * 0.77, 5.6, 0.11, 0.4, 0.009);
+          float lines = max(max(l1, l2 * 0.9), max(l3 * 0.78, max(l4 * 0.62, l5 * 0.48)));
+          float nearFade = smoothstep(0.8, 2.6, dist);
+          float shoreFade = smoothstep(coastZ - 1.8, coastZ + 0.9, vWorldPos.z);
+          lines *= nearFade * shoreFade;
+          float glint = sunGlints(xz, t) * nearFade * shoreFade;
+          vec3 col = mix(waterColor, lineColor, lines * 0.78);
+          col = mix(col, glintColor, glint * 0.92);
+          float alpha = smoothstep(coastZ - 2.0, coastZ + 0.35, vWorldPos.z);
+          gl_FragColor = vec4(col, alpha);
+        }
+      `,
+    });
+    const waterNearZ = 4.2;
+    const waterDepth = waterNearZ - WATER_FAR_Z;
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(32, waterDepth, 1, 1), waterMat);
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(6.2, -2.6, (waterNearZ + WATER_FAR_Z) * 0.5);
+    water.userData.skipSketch = true;
+    scene.add(water);
+    let sunSize = 0.038;
+    const skyMat = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      depthTest: false,
+      uniforms: {
+        sunDir: { value: sunDir },
+        sunSize: { value: sunSize },
+        skyTop: { value: new THREE.Color('#ddded9') },
+        skyMid: { value: new THREE.Color('#fbe9d1') },
+        sunFill: { value: new THREE.Color('#fef1e0') },
+        ink: { value: new THREE.Color('#3a342e') },
+      },
+      vertexShader: /* glsl */`
+        varying vec3 vDir;
+        varying float vScreenY;
+        void main() {
+          vDir = position;
+          vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vScreenY = clip.y / max(clip.w, 1e-6) * 0.5 + 0.5;
+          gl_Position = clip;
+        }
+      `,
+      fragmentShader: /* glsl */`
+        uniform vec3 sunDir;
+        uniform float sunSize;
+        uniform vec3 skyTop;
+        uniform vec3 skyMid;
+        uniform vec3 sunFill;
+        uniform vec3 ink;
+        varying vec3 vDir;
+        varying float vScreenY;
+        void main() {
+          vec3 dir = normalize(vDir);
+          float h = clamp(vScreenY, 0.0, 1.0);
+          vec3 sky = mix(skyMid, skyTop, smoothstep(0.22, 0.88, h));
+          float ang = acos(clamp(dot(dir, normalize(sunDir)), -1.0, 1.0));
+          float r = max(sunSize, 0.004) * 0.5;
+          float aa = max(fwidth(ang) * 0.65, 0.00012);
+          float ringW = max(fwidth(ang) * 0.55, 0.00018);
+          float fill = 1.0 - smoothstep(r - aa, r + aa, ang);
+          float ring = smoothstep(r - ringW - aa, r - ringW, ang)
+                     * (1.0 - smoothstep(r, r + aa, ang));
+          vec3 col = mix(sky, sunFill, fill);
+          col = mix(col, ink, ring);
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `,
+    });
+    const skyDome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), skyMat);
+    skyDome.userData.skipSketch = true;
+    skyDome.frustumCulled = false;
+    skyDome.renderOrder = -20;
+    scene.add(skyDome);
+
+    function placeSun() {
+      const r = Math.max(6, camera.far * 0.92);
+      skyDome.position.copy(camera.position);
+      skyDome.scale.setScalar(r);
+    }
+
+    const texLoader = new THREE.TextureLoader();
+    function addBillboard(file, x, y, z, width, height) {
+      const tex = texLoader.load(file);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+        alphaTest: 0.04,
+      }));
+      sprite.position.set(x, y, z);
+      sprite.scale.set(width, height, 1);
+      sprite.userData.skipSketch = true;
+      scene.add(sprite);
+      return sprite;
+    }
+    addBillboard('./assets/sprites/coast.png', 5.675269959653323, -1.850992434015487, -14.526863731808232, 11.28, 1.9844444444444476);
+    addBillboard('./assets/sprites/cloud-1.png', -1.8922067769261657, 1.7687101471408364, -5.8, 1.85, 0.36);
+    addBillboard('./assets/sprites/cloud-2.png', 0.26517942402114425, 1.46, -6.4, 1.7, 0.2);
+    addBillboard('./assets/sprites/cloud-3.png', 4.095143763466996, 2.308675802080455, -7.672950791116107, 1.45, 0.36);
+
+    const PaperSketchShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        tNormal: { value: null },
+        tDepth: { value: null },
+        resolution: { value: new THREE.Vector2(innerWidth, innerHeight) },
+        paper: { value: new THREE.Color('#efe6d6') },
+        ink: { value: new THREE.Color('#2a2622') },
+        skyTop: { value: new THREE.Color('#ddded9') },
+        skyMid: { value: new THREE.Color('#fbe9d1') },
+        skyBot: { value: new THREE.Color('#fbe9d1') },
+      },
+      vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: /* glsl */`
+        #include <packing>
+        uniform sampler2D tDiffuse;
+        uniform sampler2D tNormal;
+        uniform sampler2D tDepth;
+        uniform vec2 resolution;
+        uniform vec3 paper;
+        uniform vec3 ink;
+        uniform vec3 skyTop;
+        uniform vec3 skyMid;
+        uniform vec3 skyBot;
+        varying vec2 vUv;
+
+        float hash(vec2 p) {
+          p = fract(p * vec2(123.34, 456.21));
+          p += dot(p, p + 45.32);
+          return fract(p.x * p.y);
+        }
+
+        float grain(vec2 uv) {
+          vec2 p = uv * resolution * 0.55;
+          float n = hash(floor(p)) * 0.55;
+          n += hash(floor(p * 2.17 + 11.3)) * 0.28;
+          n += hash(p * 0.13) * 0.17;
+          float speckle = step(0.82, hash(floor(uv * resolution * 0.22) + 3.1));
+          return n * 0.85 + speckle * 0.15;
+        }
+
+        float depthAt(vec2 uv) {
+          return unpackRGBAToDepth(texture2D(tDepth, uv));
+        }
+
+        vec3 normalAt(vec2 uv) {
+          return texture2D(tNormal, uv).xyz * 2.0 - 1.0;
+        }
+
+        float depthEdge(vec2 uv) {
+          vec2 px = 1.0 / resolution;
+          float c = depthAt(uv);
+          float l = abs(depthAt(uv + vec2(-px.x, 0.0)) - c);
+          float r = abs(depthAt(uv + vec2( px.x, 0.0)) - c);
+          float t = abs(depthAt(uv + vec2(0.0,  px.y)) - c);
+          float b = abs(depthAt(uv + vec2(0.0, -px.y)) - c);
+          float tl = abs(depthAt(uv + vec2(-px.x,  px.y)) - c);
+          float tr = abs(depthAt(uv + vec2( px.x,  px.y)) - c);
+          float bl = abs(depthAt(uv + vec2(-px.x, -px.y)) - c);
+          float br = abs(depthAt(uv + vec2( px.x, -px.y)) - c);
+          return max(max(l, r), max(t, b)) * 0.65 + max(max(tl, tr), max(bl, br)) * 0.35;
+        }
+
+        float normalEdge(vec2 uv) {
+          vec2 px = 1.0 / resolution;
+          vec3 c = normalAt(uv);
+          float e = 0.0;
+          e += (1.0 - dot(c, normalAt(uv + vec2(-px.x, 0.0)))) * 0.5;
+          e += (1.0 - dot(c, normalAt(uv + vec2( px.x, 0.0)))) * 0.5;
+          e += (1.0 - dot(c, normalAt(uv + vec2(0.0,  px.y)))) * 0.5;
+          e += (1.0 - dot(c, normalAt(uv + vec2(0.0, -px.y)))) * 0.5;
+          e += (1.0 - dot(c, normalAt(uv + vec2(-px.x,  px.y)))) * 0.25;
+          e += (1.0 - dot(c, normalAt(uv + vec2( px.x,  px.y)))) * 0.25;
+          e += (1.0 - dot(c, normalAt(uv + vec2(-px.x, -px.y)))) * 0.25;
+          e += (1.0 - dot(c, normalAt(uv + vec2( px.x, -px.y)))) * 0.25;
+          return e;
+        }
+
+        void main() {
+          vec3 src = texture2D(tDiffuse, vUv).rgb;
+          float srcY = dot(src, vec3(0.299, 0.587, 0.114));
+          float d = depthAt(vUv);
+          float g = grain(vUv);
+          vec3 paperTex = paper * (0.93 + g * 0.12);
+          paperTex += vec3(0.04, 0.025, 0.01) * (g - 0.45);
+
+          float skyMask = smoothstep(0.9994, 0.99995, d);
+          float solid = 1.0 - skyMask;
+          float dE = depthEdge(vUv);
+          float nE = normalEdge(vUv);
+
+          float crease = smoothstep(0.035, 0.14, nE);
+          float occlude = smoothstep(0.0018, 0.008, dE);
+          float screenLine = max(crease, occlude);
+          screenLine = pow(clamp(screenLine, 0.0, 1.0), 0.7) * solid;
+
+          float meshLine = smoothstep(0.35, 0.14, srcY) * solid;
+
+          float cavity = smoothstep(0.0003, 0.0035, dE) * solid * 0.10;
+          vec3 fill = src * (0.97 + g * 0.05) - cavity;
+          vec3 skyCol = src * (0.97 + g * 0.06);
+          skyCol += vec3(0.03, 0.015, 0.0) * (g - 0.45);
+          vec3 col = mix(fill, skyCol, skyMask);
+          col = mix(col, ink, max(screenLine, meshLine) * (1.0 - skyMask));
+
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `,
+    };
+
+    const bufOpts = { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, type: THREE.UnsignedByteType };
+    const normalRT = new THREE.WebGLRenderTarget(1, 1, bufOpts);
+    const depthRT = new THREE.WebGLRenderTarget(1, 1, bufOpts);
+    const normalMat = new THREE.MeshNormalMaterial();
+    const depthMat = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+
+    function resizeBuffers() {
+      const w = Math.floor(innerWidth * renderer.getPixelRatio());
+      const h = Math.floor(innerHeight * renderer.getPixelRatio());
+      normalRT.setSize(w, h);
+      depthRT.setSize(w, h);
+      PaperSketchShader.uniforms.resolution.value.set(w, h);
+    }
+    resizeBuffers();
+
+    function renderBuffers() {
+      for (const l of creaseLines) l.visible = false;
+      scene.traverse((o) => {
+        if (o.userData.skipSketch) o.visible = false;
+      });
+      const bg = scene.background;
+      const override = scene.overrideMaterial;
+      scene.background = new THREE.Color(0x8080ff);
+      scene.overrideMaterial = normalMat;
+      renderer.setRenderTarget(normalRT);
+      renderer.render(scene, camera);
+
+      scene.background = new THREE.Color(0xffffff);
+      scene.overrideMaterial = depthMat;
+      renderer.setRenderTarget(depthRT);
+      renderer.render(scene, camera);
+
+      scene.background = bg;
+      scene.overrideMaterial = override;
+      renderer.setRenderTarget(null);
+      scene.traverse((o) => {
+        if (o.userData.skipSketch) o.visible = true;
+      });
+      for (const l of creaseLines) l.visible = true;
+    }
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const sketch = new ShaderPass(PaperSketchShader);
+    sketch.uniforms.tNormal.value = normalRT.texture;
+    sketch.uniforms.tDepth.value = depthRT.texture;
+    composer.addPass(sketch);
+    composer.addPass(new OutputPass());
+
+    const status = document.getElementById('status');
+
+    function fit(root) {
+      const box = new THREE.Box3().setFromObject(root);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      root.position.sub(center);
+      root.position.y += size.y / 2;
+
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      camera.near = Math.max(maxDim / 400, 0.02);
+      camera.far = maxDim * 40;
+      camera.updateProjectionMatrix();
+      controls.minDistance = maxDim * 0.08;
+      controls.maxDistance = maxDim * 8;
+    }
+
+    function easeInOut(t) {
+      return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
+    }
+
+    function syncSwayBase() {
+      swayBasePos.copy(camera.position);
+      swayBaseQuat.copy(camera.quaternion);
+      swayHasBase = true;
+    }
+
+    function applyCameraShot(shot, instant) {
+      if (!shot) return;
+      camRoll = Number.isFinite(shot.rotZ) ? rad(shot.rotZ) : 0;
+      if (shot.fov) camera.fov = shot.fov;
+      if (shot.near) camera.near = shot.near;
+      if (shot.far) camera.far = shot.far;
+      camera.updateProjectionMatrix();
+      if (instant) {
+        camera.position.fromArray(shot.position);
+        controls.target.fromArray(shot.target);
+        if (shot.quaternion) camera.quaternion.fromArray(shot.quaternion);
+        controls.update();
+        syncSwayBase();
+        camAnim = null;
+        return;
+      }
+      camAnim = {
+        t0: performance.now(),
+        duration: 900,
+        fromP: camera.position.clone(),
+        fromT: controls.target.clone(),
+        fromQ: camera.quaternion.clone(),
+        toP: new THREE.Vector3().fromArray(shot.position),
+        toT: new THREE.Vector3().fromArray(shot.target),
+        toQ: shot.quaternion
+          ? new THREE.Quaternion().fromArray(shot.quaternion)
+          : camera.quaternion.clone(),
+        near: shot.near,
+        far: shot.far,
+        fov: shot.fov,
+      };
+    }
+
+    function buildFloorShots(base, floorHeight, count) {
+      const n = Math.max(1, count | 0);
+      const dh = Number(floorHeight) || 0;
+      const shots = [];
+      for (let i = 0; i < n; i++) {
+        const position = base.position.slice();
+        const target = base.target.slice();
+        position[1] -= i * dh;
+        target[1] -= i * dh;
+        shots.push({
+          ...base,
+          id: `floor_${i + 1}`,
+          label: FLOOR_LABELS[i] || `${i + 1}层`,
+          position,
+          target,
+        });
+      }
+      return shots;
+    }
+
+    function setActiveButtons() {
+      const homeBtn = document.getElementById('btn-home');
+      homeBtn.classList.toggle('active', viewMode === 'home');
+      document.getElementById('btn-github').classList.toggle('active', viewMode === 'github');
+      document.querySelectorAll('#floor-btns button').forEach((b, i) => {
+        b.classList.toggle('active', viewMode === 'floor' && i === activeFloor);
+      });
+    }
+
+    function goHome(instant) {
+      const shot = layoutData.homeCamera;
+      if (!shot) return;
+      viewMode = 'home';
+      setActiveButtons();
+      applyCameraShot(shot, instant);
+    }
+
+    function goGithub(instant) {
+      const shot = layoutData.githubCamera;
+      if (!shot) return;
+      viewMode = 'github';
+      setActiveButtons();
+      applyCameraShot(shot, instant);
+    }
+
+    function bindFloorButtons() {
+      const box = document.getElementById('floor-btns');
+      box.innerHTML = '';
+      floorShots.forEach((shot, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = shot.label;
+        btn.addEventListener('click', () => {
+          viewMode = 'floor';
+          activeFloor = i;
+          setActiveButtons();
+          applyCameraShot(floorShots[i], false);
+        });
+        box.appendChild(btn);
+      });
+      setActiveButtons();
+    }
+
+    function rebuildFloors(opts = {}) {
+      const base = layoutData.camera || (layoutData.cameras && layoutData.cameras[0]);
+      if (!base) return;
+      const dh = Number(document.getElementById('floor-height').value);
+      const count = layoutData.floorCount || FLOOR_LABELS.length;
+      layoutData.floorHeight = dh;
+      floorShots = buildFloorShots(base, dh, count);
+      bindFloorButtons();
+      if (opts.apply && viewMode === 'floor') {
+        applyCameraShot(floorShots[activeFloor] || floorShots[0], !!opts.instant);
+      }
+    }
+
+    const paperMat = () => new THREE.MeshLambertMaterial({
+      color: '#f3ece1',
+      emissive: '#f0e8db',
+      emissiveIntensity: 0.45,
+      vertexColors: false,
+    });
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x2a2622,
+      depthTest: true,
+      depthWrite: false,
+    });
+
+    function styleLikeBuilding(root, edgeAngle = 28) {
+      root.traverse((o) => {
+        if (!o.isMesh) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        const next = mats.map(() => paperMat());
+        o.material = Array.isArray(o.material) ? next : next[0];
+      });
+      root.updateWorldMatrix(true, true);
+      root.traverse((o) => {
+        if (!o.isMesh || !o.geometry) return;
+        const edges = new THREE.EdgesGeometry(o.geometry, edgeAngle);
+        if (!edges.attributes.position || edges.attributes.position.count < 2) {
+          edges.dispose();
+          return;
+        }
+        const lines = new THREE.LineSegments(edges, lineMat);
+        lines.renderOrder = 2;
+        o.add(lines);
+        creaseLines.push(lines);
+      });
+    }
+
+    function fitPropInWrap(prop, height, width) {
+      prop.position.set(0, 0, 0);
+      prop.rotation.set(0, 0, 0);
+      prop.scale.setScalar(1);
+      prop.updateWorldMatrix(true, true);
+      const pb = new THREE.Box3().setFromObject(prop);
+      const psz = pb.getSize(new THREE.Vector3());
+      const sH = height / Math.max(psz.y, 1e-6);
+      const sW = (width ?? height) / Math.max(psz.x, psz.z, 1e-6);
+      const s = Math.min(sH, sW);
+      prop.scale.setScalar(s);
+      prop.updateWorldMatrix(true, true);
+      const pb2 = new THREE.Box3().setFromObject(prop);
+      const center = pb2.getCenter(new THREE.Vector3());
+      prop.position.set(-center.x, -pb2.min.y, -center.z);
+    }
+
+    const loader = new GLTFLoader();
+
+    async function spawnScenery(place) {
+      const item = layoutData.catalog[place.kind];
+      if (!item) throw new Error(`未知 kind: ${place.kind}`);
+      const height = place.height ?? item.height;
+      const width = place.width ?? item.width;
+      const gltf = await loader.loadAsync(item.url);
+      const wrap = new THREE.Group();
+      wrap.position.set(place.x, place.y, place.z);
+      wrap.rotation.set(place.rotX || 0, place.rotY || 0, place.rotZ || 0);
+      const prop = gltf.scene;
+      styleLikeBuilding(prop, 22);
+      fitPropInWrap(prop, height, width);
+      wrap.add(prop);
+      scene.add(wrap);
+    }
+
+    function applyPinTransform(pin) {
+      pin.mesh.position.set(pin.x, pin.y, pin.z);
+      pin.mesh.rotation.set(pin.rotX || 0, pin.rotY || 0, pin.rotZ || 0);
+    }
+
+    function syncPinFromWrap(pin) {
+      pin.x = pin.mesh.position.x;
+      pin.y = pin.mesh.position.y;
+      pin.z = pin.mesh.position.z;
+      pin.rotX = pin.mesh.rotation.x;
+      pin.rotY = pin.mesh.rotation.y;
+      pin.rotZ = pin.mesh.rotation.z;
+    }
+
+    async function loadLayout() {
+      layoutData = await fetch(LAYOUT_URL).then((r) => {
+        if (!r.ok) throw new Error(`layout.json ${r.status}`);
+        return r.json();
+      });
+
+      const gltf = await loader.loadAsync(layoutData.building);
+      const root = gltf.scene;
+      styleLikeBuilding(root, 28);
+      scene.add(root);
+      buildingRoot = root;
+      root.traverse((o) => { if (o.isMesh) pickMeshes.push(o); });
+      fit(root);
+
+      for (const place of layoutData.placements || []) {
+        await spawnScenery(place);
+      }
+
+      const heightInput = document.getElementById('floor-height');
+      heightInput.value = layoutData.floorHeight ?? 0.155;
+      heightInput.addEventListener('input', () => rebuildFloors({ apply: true, instant: true }));
+      document.getElementById('btn-home').addEventListener('click', () => goHome(false));
+      document.getElementById('btn-github').addEventListener('click', () => goGithub(false));
+      rebuildFloors();
+      goHome(true);
+      fillKindSelect();
+    }
+
+    loadLayout().then(() => status.remove()).catch((err) => {
+      status.innerHTML = `加载失败<br><small>${err?.message || err}</small>`;
+    });
+
+    const pinList = document.getElementById('pin-list');
+    const pinGeo = new THREE.SphereGeometry(0.012, 12, 12);
+    const pinMat = new THREE.MeshBasicMaterial({ color: 0x2a221c });
+
+    function fmt(n) { return Number(n).toFixed(4); }
+    function deg(r) { return r * 180 / Math.PI; }
+    function rad(d) { return d * Math.PI / 180; }
+
+    function pinsJson() {
+      return JSON.stringify(pins.map((p) => ({
+        name: p.name,
+        kind: p.kind || undefined,
+        url: p.url || undefined,
+        height: p.height,
+        width: p.width,
+        x: p.x, y: p.y, z: p.z,
+        rotX: p.rotX || 0, rotY: p.rotY || 0, rotZ: p.rotZ || 0,
+      })), null, 2);
+    }
+
+    function fillKindSelect() {
+      const sel = document.getElementById('ed-kind');
+      const cur = sel.value;
+      const keys = Object.keys(layoutData?.catalog || {});
+      sel.innerHTML = '<option value="">（不放模型）</option>' +
+        keys.map((k) => `<option value="${k}">${k}</option>`).join('');
+      if (keys.includes(cur)) sel.value = cur;
+    }
+
+    function renderPinList() {
+      pinList.innerHTML = pins.map((p, i) => `
+        <li data-i="${i}">
+          <input value="${p.name.replaceAll('"', '&quot;')}" />
+          <code>${fmt(p.x)}, ${fmt(p.y)}, ${fmt(p.z)}</code>
+          <button type="button" class="open" data-open="${i}">编辑</button>
+          <button type="button" data-del="${i}">删除</button>
+        </li>
+      `).join('') || '<li style="border:0;background:none;color:#8a8074">还没有点</li>';
+    }
+
+    function addPin(opts) {
+      const hit = opts.isVector3 ? opts : null;
+      const name = opts.name || `pin_${pinSeq++}`;
+      const m = name.match(/^pin_(\d+)$/);
+      if (m) pinSeq = Math.max(pinSeq, Number(m[1]) + 1);
+      const x = hit ? hit.x : opts.x;
+      const y = hit ? hit.y : opts.y;
+      const z = hit ? hit.z : opts.z;
+      const wrap = new THREE.Group();
+      wrap.position.set(x, y, z);
+      wrap.rotation.set(opts.rotX || 0, opts.rotY || 0, opts.rotZ || 0);
+      const marker = new THREE.Mesh(pinGeo, pinMat);
+      wrap.add(marker);
+      pinGroup.add(wrap);
+      const label = document.createElement('div');
+      label.className = 'pin-label';
+      label.textContent = name;
+      label.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pin = pins.find((p) => p.label === label);
+        if (pin) openEditor(pin);
+      });
+      document.body.appendChild(label);
+      const pin = {
+        name, x, y, z,
+        rotX: opts.rotX || 0, rotY: opts.rotY || 0, rotZ: opts.rotZ || 0,
+        kind: opts.kind || '',
+        url: opts.url || '',
+        height: opts.height,
+        width: opts.width,
+        mesh: wrap, marker, prop: null, label,
+      };
+      pins.push(pin);
+      wrap.userData.pin = pin;
+      if (pin.kind || pin.url) loadPinModel(pin);
+      renderPinList();
+      return pin;
+    }
+
+    function clearPinProp(pin) {
+      if (!pin.prop) return;
+      pin.mesh.remove(pin.prop);
+      pin.prop.traverse((o) => {
+        if (o.geometry) o.geometry.dispose();
+      });
+      pin.prop = null;
+      if (pin.marker) pin.marker.visible = true;
+    }
+
+    async function loadPinModel(pin, source) {
+      const catalog = layoutData?.catalog || {};
+      let url = source?.url || pin.url;
+      let kind = source?.kind ?? pin.kind;
+      if (kind && catalog[kind] && !source?.url) url = catalog[kind].url;
+      if (!url) {
+        pin.kind = kind || '';
+        pin.url = '';
+        clearPinProp(pin);
+        return;
+      }
+      const item = (kind && catalog[kind]) || {};
+      const height = source?.height ?? pin.height ?? item.height ?? 0.03;
+      const width = source?.width ?? pin.width ?? item.width ?? height;
+      pin.kind = kind || '';
+      pin.url = url;
+      pin.height = height;
+      pin.width = width;
+      try {
+        const gltf = await loader.loadAsync(url);
+        clearPinProp(pin);
+        const prop = gltf.scene;
+        styleLikeBuilding(prop, 22);
+        fitPropInWrap(prop, height, width);
+        pin.mesh.add(prop);
+        pin.prop = prop;
+        if (pin.marker) pin.marker.visible = false;
+        if (activePin === pin && !fillingEditor) fillEditor(pin);
+      } catch (err) {
+        console.warn('加载模型失败', err);
+      }
+    }
+
+    function detachEditor() {
+      transform.detach();
+      activePin = null;
+      document.getElementById('editor').classList.remove('open');
+    }
+
+    function fillEditor(pin) {
+      fillingEditor = true;
+      fillKindSelect();
+      document.getElementById('ed-title').textContent = pin.name;
+      document.getElementById('ed-kind').value = pin.kind || '';
+      document.getElementById('ed-h').value = (pin.height ?? 0.03).toFixed(4);
+      document.getElementById('ed-w').value = (pin.width ?? pin.height ?? 0.03).toFixed(4);
+      document.getElementById('ed-x').value = pin.x.toFixed(5);
+      document.getElementById('ed-y').value = pin.y.toFixed(5);
+      document.getElementById('ed-z').value = pin.z.toFixed(5);
+      document.getElementById('ed-rx').value = deg(pin.rotX || 0).toFixed(1);
+      document.getElementById('ed-ry').value = deg(pin.rotY || 0).toFixed(1);
+      document.getElementById('ed-rz').value = deg(pin.rotZ || 0).toFixed(1);
+      fillingEditor = false;
+    }
+
+    function openEditor(pin) {
+      activePin = pin;
+      document.getElementById('editor').classList.add('open');
+      fillEditor(pin);
+      if (pin.mesh) {
+        transform.attach(pin.mesh);
+        transform.setMode('translate');
+        document.getElementById('ed-move').classList.add('active');
+        document.getElementById('ed-rot').classList.remove('active');
+      }
+    }
+
+    function readEditorIntoPin() {
+      if (!activePin || fillingEditor) return;
+      const pin = activePin;
+      pin.x = Number(document.getElementById('ed-x').value);
+      pin.y = Number(document.getElementById('ed-y').value);
+      pin.z = Number(document.getElementById('ed-z').value);
+      pin.rotX = rad(Number(document.getElementById('ed-rx').value) || 0);
+      pin.rotY = rad(Number(document.getElementById('ed-ry').value) || 0);
+      pin.rotZ = rad(Number(document.getElementById('ed-rz').value) || 0);
+      const h = Number(document.getElementById('ed-h').value);
+      const w = Number(document.getElementById('ed-w').value);
+      if (Number.isFinite(h)) pin.height = h;
+      if (Number.isFinite(w)) pin.width = w;
+      applyPinTransform(pin);
+      if (pin.prop) fitPropInWrap(pin.prop, pin.height || 0.03, pin.width || pin.height || 0.03);
+      renderPinList();
+    }
+
+    function clearPins() {
+      detachEditor();
+      for (const p of [...pins]) removePin(p);
+      renderPinList();
+    }
+
+    function removePin(p) {
+      if (activePin === p) detachEditor();
+      if (p.blobUrl) URL.revokeObjectURL(p.blobUrl);
+      clearPinProp(p);
+      pinGroup.remove(p.mesh);
+      p.label.remove();
+      const i = pins.indexOf(p);
+      if (i >= 0) pins.splice(i, 1);
+    }
+
+    function projectPins() {
+      for (const p of pins) {
+        ndc.set(p.x, p.y, p.z).project(camera);
+        const sx = (ndc.x * 0.5 + 0.5) * innerWidth;
+        const sy = (-ndc.y * 0.5 + 0.5) * innerHeight;
+        const vis = ndc.z > -1 && ndc.z < 1;
+        p.label.style.display = vis ? 'block' : 'none';
+        p.label.style.left = `${sx}px`;
+        p.label.style.top = `${sy}px`;
+        p.label.textContent = p.name;
+      }
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      downX = e.clientX;
+      downY = e.clientY;
+    });
+
+    renderer.domElement.addEventListener('pointerup', async (e) => {
+      if (e.button !== 0) return;
+      if (transform.dragging) return;
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
+      pointer.x = (e.clientX / innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const pinHits = raycaster.intersectObjects(pinGroup.children, true);
+      const pinHit = pinHits.find((h) => {
+        let o = h.object;
+        while (o) {
+          if (o.userData.pin) return true;
+          o = o.parent;
+        }
+        return false;
+      });
+      if (pinHit) {
+        let o = pinHit.object;
+        while (o && !o.userData.pin) o = o.parent;
+        openEditor(o.userData.pin);
+        return;
+      }
+      if (pickMeshes.length) {
+        const hits = raycaster.intersectObjects(pickMeshes, false);
+        if (hits.length) {
+          const pin = addPin(hits[0].point.clone());
+          openEditor(pin);
+          return;
+        }
+      }
+    });
+
+    pinList.addEventListener('input', (e) => {
+      const li = e.target.closest('li');
+      if (!li || e.target.tagName !== 'INPUT') return;
+      const i = Number(li.dataset.i);
+      if (pins[i]) {
+        pins[i].name = e.target.value;
+        pins[i].label.textContent = e.target.value;
+        if (activePin === pins[i]) document.getElementById('ed-title').textContent = e.target.value;
+      }
+    });
+    pinList.addEventListener('click', (e) => {
+      const openBtn = e.target.closest('[data-open]');
+      if (openBtn) {
+        const p = pins[Number(openBtn.dataset.open)];
+        if (p) openEditor(p);
+        return;
+      }
+      const btn = e.target.closest('[data-del]');
+      if (!btn) return;
+      const p = pins[Number(btn.dataset.del)];
+      if (!p) return;
+      removePin(p);
+      renderPinList();
+    });
+
+    const ed = document.getElementById('editor');
+    ed.addEventListener('input', (e) => {
+      if (e.target.id === 'ed-kind') return;
+      readEditorIntoPin();
+    });
+    document.getElementById('ed-kind').addEventListener('change', () => {
+      if (!activePin || fillingEditor) return;
+      const kind = document.getElementById('ed-kind').value;
+      const item = layoutData?.catalog?.[kind];
+      if (item) {
+        activePin.height = item.height;
+        activePin.width = item.width;
+      }
+      if (activePin.blobUrl) {
+        URL.revokeObjectURL(activePin.blobUrl);
+        activePin.blobUrl = '';
+      }
+      loadPinModel(activePin, { kind, url: item?.url || '' });
+      fillEditor(activePin);
+    });
+    document.getElementById('ed-file').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file || !activePin) return;
+      if (activePin.blobUrl) URL.revokeObjectURL(activePin.blobUrl);
+      const url = URL.createObjectURL(file);
+      activePin.blobUrl = url;
+      activePin.kind = '';
+      document.getElementById('ed-kind').value = '';
+      if (!Number.isFinite(activePin.height)) activePin.height = 0.03;
+      if (!Number.isFinite(activePin.width)) activePin.width = 0.03;
+      loadPinModel(activePin, { kind: '', url, height: activePin.height, width: activePin.width });
+    });
+    document.getElementById('ed-move').addEventListener('click', () => {
+      transform.setMode('translate');
+      document.getElementById('ed-move').classList.add('active');
+      document.getElementById('ed-rot').classList.remove('active');
+    });
+    document.getElementById('ed-rot').addEventListener('click', () => {
+      transform.setMode('rotate');
+      document.getElementById('ed-rot').classList.add('active');
+      document.getElementById('ed-move').classList.remove('active');
+    });
+    document.getElementById('ed-close').addEventListener('click', detachEditor);
+    document.getElementById('ed-copy').addEventListener('click', (e) => {
+      if (!activePin) return;
+      const p = activePin;
+      copyText(e.currentTarget, JSON.stringify({
+        name: p.name, x: p.x, y: p.y, z: p.z,
+        rotX: p.rotX, rotY: p.rotY, rotZ: p.rotZ,
+      }, null, 2));
+    });
+    let fillingCam = false;
+    let camRoll = 0;
+    const camEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+    const camFields = ['cam-x', 'cam-y', 'cam-z', 'cam-rx', 'cam-ry', 'cam-rz'];
+    function camFieldFocused() {
+      const el = document.activeElement;
+      return el && camFields.includes(el.id);
+    }
+    function fillCamPanel() {
+      if (fillingCam || camFieldFocused()) return;
+      fillingCam = true;
+      camEuler.setFromQuaternion(camera.quaternion, 'YXZ');
+      document.getElementById('cam-x').value = camera.position.x.toFixed(5);
+      document.getElementById('cam-y').value = camera.position.y.toFixed(5);
+      document.getElementById('cam-z').value = camera.position.z.toFixed(5);
+      document.getElementById('cam-rx').value = deg(camEuler.x).toFixed(2);
+      document.getElementById('cam-ry').value = deg(camEuler.y).toFixed(2);
+      document.getElementById('cam-rz').value = deg(camEuler.z).toFixed(2);
+      fillingCam = false;
+    }
+    function applyCamRoll() {
+      if (Math.abs(camRoll) < 1e-8) return;
+      camera.rotateZ(camRoll);
+    }
+    function applyCamPanel() {
+      if (fillingCam) return;
+      const x = Number(document.getElementById('cam-x').value);
+      const y = Number(document.getElementById('cam-y').value);
+      const z = Number(document.getElementById('cam-z').value);
+      const rx = Number(document.getElementById('cam-rx').value);
+      const ry = Number(document.getElementById('cam-ry').value);
+      const rz = Number(document.getElementById('cam-rz').value);
+      if (![x, y, z, rx, ry, rz].every(Number.isFinite)) return;
+      const dist = Math.max(camera.position.distanceTo(controls.target), 0.05);
+      camera.position.set(x, y, z);
+      camEuler.set(rad(rx), rad(ry), rad(rz), 'YXZ');
+      camera.quaternion.setFromEuler(camEuler);
+      camRoll = rad(rz);
+      camera.updateMatrixWorld();
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      controls.target.copy(camera.position).addScaledVector(dir, dist);
+      camAnim = null;
+      syncSwayBase();
+    }
+    for (const id of camFields) {
+      document.getElementById(id).addEventListener('input', applyCamPanel);
+    }
+
+    function cameraSnapshot() {
+      controls.update();
+      camera.updateMatrixWorld();
+      const sph = new THREE.Spherical().setFromVector3(
+        camera.position.clone().sub(controls.target)
+      );
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      return {
+        type: 'PerspectiveCamera',
+        fov: camera.fov,
+        aspect: camera.aspect,
+        near: camera.near,
+        far: camera.far,
+        zoom: camera.zoom,
+        filmOffset: camera.filmOffset,
+        filmGauge: camera.filmGauge,
+        position: camera.position.toArray(),
+        quaternion: camera.quaternion.toArray(),
+        rotation: [camera.rotation.x, camera.rotation.y, camera.rotation.z, camera.rotation.order],
+        up: camera.up.toArray(),
+        target: controls.target.toArray(),
+        direction: dir.toArray(),
+        spherical: { radius: sph.radius, phi: sph.phi, theta: sph.theta },
+        polarAngle: controls.getPolarAngle(),
+        azimuthAngle: controls.getAzimuthalAngle(),
+        viewport: { width: innerWidth, height: innerHeight, pixelRatio: renderer.getPixelRatio() },
+      };
+    }
+
+    async function copyText(btn, text) {
+      await navigator.clipboard.writeText(text);
+      console.log(text);
+      const prev = btn.textContent;
+      btn.textContent = '已复制';
+      setTimeout(() => { btn.textContent = prev; }, 1200);
+    }
+
+    document.getElementById('copy-pins').addEventListener('click', (e) => copyText(e.currentTarget, pinsJson()));
+    document.getElementById('copy-camera').addEventListener('click', (e) => {
+      copyText(e.currentTarget, JSON.stringify(cameraSnapshot(), null, 2));
+    });
+    document.getElementById('clear-pins').addEventListener('click', clearPins);
+    addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') detachEditor();
+    });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      composer.setSize(innerWidth, innerHeight);
+      resizeBuffers();
+    });
+
+    addEventListener('pointermove', (e) => {
+      swayMouse.x = (e.clientX / innerWidth) * 2 - 1;
+      swayMouse.y = (e.clientY / innerHeight) * 2 - 1;
+    });
+    document.getElementById('sway-toggle').addEventListener('change', (e) => {
+      swayOn = e.target.checked;
+      if (!swayOn) { sway.x = 0; sway.y = 0; }
+    });
+    function setUiHidden(hidden) {
+      document.body.classList.toggle('ui-hidden', hidden);
+      document.getElementById('ui-hide-toggle').checked = hidden;
+      pinGroup.visible = !hidden;
+      if (hidden) detachEditor();
+    }
+    document.getElementById('ui-hide-toggle').addEventListener('change', (e) => {
+      setUiHidden(e.target.checked);
+    });
+    document.getElementById('ui-show').addEventListener('click', () => setUiHidden(false));
+
+    function tick() {
+      requestAnimationFrame(tick);
+      if (swayHasBase) {
+        camera.position.copy(swayBasePos);
+        camera.quaternion.copy(swayBaseQuat);
+      }
+      if (camAnim) {
+        const u = Math.min(1, (performance.now() - camAnim.t0) / camAnim.duration);
+        const e = easeInOut(u);
+        camera.position.lerpVectors(camAnim.fromP, camAnim.toP, e);
+        controls.target.lerpVectors(camAnim.fromT, camAnim.toT, e);
+        camera.quaternion.slerpQuaternions(camAnim.fromQ, camAnim.toQ, e);
+        if (u >= 1) {
+          camAnim = null;
+          syncSwayBase();
+        }
+      } else {
+        controls.update();
+      }
+      swayBasePos.copy(camera.position);
+      swayBaseQuat.copy(camera.quaternion);
+      swayHasBase = true;
+      const wantX = swayOn ? swayMouse.x : 0;
+      const wantY = swayOn ? swayMouse.y : 0;
+      sway.x += (wantX - sway.x) * 0.08;
+      sway.y += (wantY - sway.y) * 0.08;
+      if (Math.abs(sway.x) > 1e-4 || Math.abs(sway.y) > 1e-4) {
+        swayOffset.copy(swayBasePos).sub(controls.target);
+        swaySph.setFromVector3(swayOffset);
+        const amp = 0.012;
+        swaySph.theta -= sway.x * amp;
+        swaySph.phi = THREE.MathUtils.clamp(swaySph.phi - sway.y * amp, 0.05, Math.PI - 0.05);
+        swayOffset.setFromSpherical(swaySph);
+        camera.position.copy(controls.target).add(swayOffset);
+        camera.lookAt(controls.target);
+      }
+      applyCamRoll();
+      placeSun();
+      waterMat.uniforms.time.value = performance.now() * 0.001;
+      renderBuffers();
+      sketch.uniforms.tNormal.value = normalRT.texture;
+      sketch.uniforms.tDepth.value = depthRT.texture;
+      composer.render();
+      projectPins();
+      fillCamPanel();
+    }
+    tick();
+  </script>
+</body>
+</html>

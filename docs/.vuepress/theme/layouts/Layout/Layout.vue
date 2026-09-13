@@ -1,5 +1,5 @@
 <template>
-  <div class="theme-container">
+  <div class="theme-container" :class="{ 'is-home': isHome }">
     <header class="navbar" :class="{ 'navbar-hidden': isNavbarHidden }">
       <div class="navbar-inner">
         <div class="navbar-brand">
@@ -52,7 +52,7 @@
       </div>
     </slot>
 
-    <footer class="footer">
+    <footer v-if="!isHome" class="footer">
       <div class="footer-content">
         © {{ new Date().getFullYear() }} {{ $site.title }}. Powered by VuePress.
       </div>
@@ -61,8 +61,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
-import { usePageData } from 'vuepress/client'
+import { ref, onMounted, onUnmounted, defineAsyncComponent, computed } from 'vue'
+import { usePageData, useRoute } from 'vuepress/client'
 import SvgIcon from './SvgIcon.vue'
 import SidebarToc from './SidebarToc.vue'
 const SearchBox = defineAsyncComponent(() =>
@@ -74,6 +74,8 @@ const SearchBox = defineAsyncComponent(() =>
 
 const isDark = ref(false)
 const pageData = usePageData()
+const route = useRoute()
+const isHome = computed(() => route.path === '/' || pageData.value?.frontmatter?.home)
 const isMenuOpen = ref(false)
 const isNavbarHidden = ref(false)
 
@@ -115,6 +117,11 @@ const handleScroll = () => {
   lastScrollY = currentScrollY
 }
 
+const handleWheel = (e) => {
+  if (e.deltaY > 0) isNavbarHidden.value = true
+  else if (e.deltaY < 0) isNavbarHidden.value = false
+}
+
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme')
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -126,8 +133,13 @@ onMounted(() => {
   } else {
     document.documentElement.dataset.theme = 'light'
   }
-  // 添加滚动监听
   window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('wheel', handleWheel, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('wheel', handleWheel)
 })
 </script>
 
@@ -138,11 +150,11 @@ onMounted(() => {
   --c-text: #1a1a2e;
   --c-text-light: #4a4a6a;
   --c-text-lighter: #8a8aaa;
-  --c-bg: #f5f0e8;
-  --c-bg-light: #ede8de;
-  --c-bg-lighter: #f0d8cc;
-  --c-border: #ddd8ce;
-  --c-border-dark: #c9c3b5;
+  --c-bg: #fafafa;
+  --c-bg-light: #f3f3f3;
+  --c-bg-lighter: #ececec;
+  --c-border: #e6e6e6;
+  --c-border-dark: #d4d4d4;
 
   --navbar-height: 3.6rem;
 }
@@ -274,6 +286,11 @@ html.dark .search-box {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+
+  &.is-home {
+    height: 100vh;
+    overflow: hidden;
+  }
 }
 
 .navbar {
@@ -283,10 +300,22 @@ html.dark .search-box {
   left: 0;
   right: 0;
   height: var(--navbar-height);
-  background-color: var(--c-bg);
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-sizing: border-box;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   transition: background-color 0.3s, border-color 0.3s, transform 0.3s ease;
+
+  .is-home & {
+    background-color: rgba(255, 255, 255, 0.55);
+    border-bottom-color: transparent;
+  }
+
+  :global(html.dark) & {
+    background-color: rgba(30, 26, 20, 0.72);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
 
   &-hidden {
     transform: translateY(-100%);

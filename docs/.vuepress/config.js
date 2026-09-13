@@ -117,8 +117,10 @@ export default defineUserConfig({
       resolve: {
         alias: {
           '@mytheme': resolve(dirname(fileURLToPath(import.meta.url)), './theme'),
+          '@paper-home': resolve(dirname(fileURLToPath(import.meta.url)), '../../paper-home'),
         }
-      }
+      },
+      assetsInclude: ['**/*.glb'],
     }
   }),
 })
