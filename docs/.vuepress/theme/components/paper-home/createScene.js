@@ -4,11 +4,14 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { CSS3DRenderer, CSS3DObject, CSS3DSprite } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import { waterShader, skyShader, paperSketchShader } from './shaders.js'
+import { createTextLayer } from './createText.js'
 import { createCameraRig } from './cameraRig.js'
 
 function buildViewStates(layout) {
   const states = { home: layout.homeCamera }
+  if (layout.githubCamera) states.github = layout.githubCamera
   const base = layout.camera
   if (!base) return states
   const dh = Number(layout.floorHeight) || 0.155
@@ -38,6 +41,8 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
   renderer.toneMapping = THREE.NoToneMapping
   renderer.shadowMap.enabled = false
   renderer.setClearColor(PAPER, 1)
+  renderer.domElement.style.position = 'absolute'
+  renderer.domElement.style.inset = '0'
   el.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
@@ -201,20 +206,149 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
   cameraRig.setSway(true)
 
   // —— 盆栽与笔记本 ——
+  let laptopWrap = null
   for (const place of layout.placements || []) {
     const item = layout.catalog[place.kind]
     const url = catalogUrls[place.kind]
     if (!item || !url) continue
     const gltf = await loader.loadAsync(url)
     const wrap = new THREE.Group()
+    wrap.userData.kind = place.kind
     wrap.position.set(place.x, place.y, place.z)
     wrap.rotation.set(place.rotX || 0, place.rotY || 0, place.rotZ || 0)
     const prop = gltf.scene
     styleLikeBuilding(prop, 22)
     fitPropInWrap(prop, place.height ?? item.height, place.width ?? item.width)
     wrap.add(prop)
+    if (place.kind === 'laptop') {
+      laptopWrap = wrap
+      wrap.traverse((o) => { if (o.isMesh) o.material.side = THREE.DoubleSide })
+    }
     scene.add(wrap)
   }
+
+  const raycaster = new THREE.Raycaster()
+  const ndc = new THREE.Vector2()
+  const hitLaptop = (e) => {
+    if (!laptopWrap) return false
+    const canvas = renderer.domElement
+    ndc.x = (e.offsetX / canvas.clientWidth) * 2 - 1
+    ndc.y = -(e.offsetY / canvas.clientHeight) * 2 + 1
+    camera.updateMatrixWorld()
+    laptopWrap.updateMatrixWorld(true)
+    raycaster.setFromCamera(ndc, camera)
+    return raycaster.intersectObject(laptopWrap, true).some((h) => h.object.isMesh)
+  }
+
+  // —— 屏幕上的 CSS3D 网页（真 DOM，不是模型） ——
+  const cssRenderer = new CSS3DRenderer()
+  cssRenderer.domElement.style.position = 'absolute'
+  cssRenderer.domElement.style.inset = '0'
+  cssRenderer.domElement.style.pointerEvents = 'none'
+  el.appendChild(cssRenderer.domElement)
+  const cssScene = new THREE.Scene()
+  const iframeW = 900
+  const iframeH = 560
+  const iframe = document.createElement('iframe')
+  iframe.width = iframeW
+  iframe.height = iframeH
+  iframe.style.border = '0'
+  iframe.style.background = '#fff'
+  iframe.style.pointerEvents = 'none'
+  const cssScreen = new CSS3DObject(iframe)
+  cssScene.add(cssScreen)
+  const screenAnchor = new THREE.Object3D()
+  if (laptopWrap) {
+    screenAnchor.position.set(0.0001, 0.0083, -0.0078)
+    laptopWrap.add(screenAnchor)
+  }
+  const screenScale = 0.021 / iframeW
+  // CSS3D 把世界坐标当 px 用。本场景是米级（~1 单位），直接把米当 px 会让屏幕
+  // 贴在透视平面（~1284px）前 0.02px 处，相机稍一靠近就越界被剔除。
+  // 把 CSS3D 这一层整体放大 K 倍（同时给 CSS 相机同样放大），视觉大小不变，
+  // 但远离透视平面，任意近距离都不会突然消失。
+  const CSS3D_SCALE = 8000
+  const cssCamera = new THREE.PerspectiveCamera()
+  const _screenPos = new THREE.Vector3()
+  const _screenQuat = new THREE.Quaternion()
+  const _screenScaleTmp = new THREE.Vector3()
+  const profileUrl = 'https://bysq.top/gh-profile/'
+  let screenRequested = false
+  const loadScreen = () => {
+    if (screenRequested) return
+    screenRequested = true
+    iframe.src = profileUrl
+  }
+  const setScreenLive = (on) => {
+    cssRenderer.domElement.style.pointerEvents = on ? 'auto' : 'none'
+    iframe.style.pointerEvents = on ? 'auto' : 'none'
+    renderer.domElement.style.pointerEvents = on ? 'none' : 'auto'
+    if (on) loadScreen()
+  }
+  // 预加载：不点笔记本也提前把页面拉起来，进 github 时立即可用
+  if ('requestIdleCallback' in window) requestIdleCallback(loadScreen, { timeout: 4000 })
+  else setTimeout(loadScreen, 2500)
+  const syncCssScreen = () => {
+    if (!laptopWrap) return
+    screenAnchor.updateWorldMatrix(true, false)
+    screenAnchor.matrixWorld.decompose(_screenPos, _screenQuat, _screenScaleTmp)
+    cssScreen.position.copy(_screenPos).multiplyScalar(CSS3D_SCALE)
+    cssScreen.quaternion.copy(_screenQuat)
+    cssScreen.scale.setScalar(screenScale * CSS3D_SCALE)
+  }
+  const syncCssCamera = () => {
+    cssCamera.position.copy(camera.position).multiplyScalar(CSS3D_SCALE)
+    cssCamera.quaternion.copy(camera.quaternion)
+    cssCamera.fov = camera.fov
+    cssCamera.aspect = camera.aspect
+    cssCamera.near = camera.near
+    cssCamera.far = camera.far
+    cssCamera.updateProjectionMatrix()
+    cssCamera.updateMatrixWorld()
+  }
+
+  // —— 电脑上方的点击提示（CSS3D 精灵，常朝向相机，常驻、无动画） ——
+  const hintStyle = document.createElement('style')
+  hintStyle.textContent = `
+    .ph-hint3d { width: 340px; pointer-events: none; }
+    .ph-hint3d-text {
+      display: inline-block; text-align: center;
+      font: 900 46px/1.1 var(--ph-font, "Microsoft YaHei", "PingFang SC", sans-serif);
+      color: #f3ece1; letter-spacing: .03em; transform: rotate(-2deg);
+      text-shadow:
+        -3px -3px 0 #2a2622, 0 -3px 0 #2a2622, 3px -3px 0 #2a2622,
+        -3px 0 0 #2a2622, 3px 0 0 #2a2622,
+        -3px 3px 0 #2a2622, 0 3px 0 #2a2622, 3px 3px 0 #2a2622,
+        8px 9px 0 rgba(42, 38, 34, .8);
+    }
+  `
+  document.head.appendChild(hintStyle)
+
+  const HINT_ELEMENT_W = 340
+  const HINT_WORLD_W = 0.03
+  const hintEl = document.createElement('div')
+  hintEl.className = 'ph-hint3d'
+  const hintText = document.createElement('div')
+  hintText.className = 'ph-hint3d-text'
+  hintText.textContent = '点击电脑试试'
+  hintEl.appendChild(hintText)
+  const cssHint = new CSS3DSprite(hintEl)
+  cssHint.scale.setScalar((HINT_WORLD_W / HINT_ELEMENT_W) * CSS3D_SCALE)
+  cssScene.add(cssHint)
+  const hintAnchor = new THREE.Object3D()
+  if (laptopWrap) {
+    hintAnchor.position.set(0, 0.02, 0)
+    laptopWrap.add(hintAnchor)
+  }
+  const _hintPos = new THREE.Vector3()
+  const syncCssHint = () => {
+    if (!laptopWrap) return
+    hintAnchor.updateWorldMatrix(true, false)
+    cssHint.position.copy(_hintPos.setFromMatrixPosition(hintAnchor.matrixWorld)).multiplyScalar(CSS3D_SCALE)
+  }
+
+  // —— 文字层（单独文件，纸墨线稿立体字，逐字翻转，和镜头状态机同步） ——
+  const text = createTextLayer(el)
 
   // —— 线稿后处理 ——
   const bufOpts = { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, type: THREE.UnsignedByteType }
@@ -264,6 +398,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    cssRenderer.setSize(w, h)
     composer.setSize(w, h)
     resizeBuffers(w, h)
   }
@@ -281,13 +416,26 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     sketch.uniforms.tNormal.value = normalRT.texture
     sketch.uniforms.tDepth.value = depthRT.texture
     composer.render()
+    syncCssCamera()
+    syncCssScreen()
+    syncCssHint()
+    cssRenderer.render(cssScene, cssCamera)
   }
   tick()
+  text.showText('home')
+
+  const goto = (name, dir = 0) => {
+    cameraRig.goto(name)
+    text.showText(name, dir)
+  }
 
   return {
-    goto: cameraRig.goto,
+    goto,
     setSway: cameraRig.setSway,
     getState: cameraRig.getState,
+    canvas: renderer.domElement,
+    hitLaptop,
+    setScreenLive,
     dispose() {
       cancelAnimationFrame(raf)
       ro.disconnect()
@@ -297,6 +445,9 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
       depthRT.dispose()
       renderer.dispose()
       renderer.domElement.remove()
+      cssRenderer.domElement.remove()
+      hintStyle.remove()
+      text.dispose()
     },
   }
 }

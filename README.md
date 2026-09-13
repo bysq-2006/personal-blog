@@ -102,6 +102,13 @@ ssh-keygen -t rsa -b 4096
 ssh-copy-id username@server-ip
 ```
 
+## 🖥️ 首页 3D 场景里的 GitHub 屏幕
+
+- 原理：屏幕本身就是个 iframe（内嵌网页）；但 github.com 不允许被别的站嵌，所以我们在自己服务器上另起一个网页，再把这个网页嵌进来。
+- 屏幕里嵌的是自建的 GitHub 资料页。
+- 用开源项目 [arifszn/gitprofile](https://github.com/arifszn/gitprofile) 构建，改配置里的 `github.username` / `base: '/gh-profile/'` 后 `npm run build` 即可。
+- 构建产物部署到自己的服务器目录（如 `/var/www/github-profile`），用 nginx 的 `location ^~ /gh-profile/` 对外提供；由 `createScene.js` 的 `profileUrl` 和 `paper-home/index.html` 的 iframe `src` 引用。
+
 ---
 
 ⭐ 如果对你有帮助，请给个 Star！

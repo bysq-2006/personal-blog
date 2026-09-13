@@ -2487,6 +2487,7 @@ __metadata:
     "@vuepress/plugin-search": "npm:^2.0.0-rc.55"
     "@vuepress/theme-default": "npm:2.0.0-rc.88"
     compressorjs: "npm:^1.2.1"
+    gsap: "npm:^3.15.0"
     katex: "npm:^0.16.27"
     pixi.js: "npm:^8.14.3"
     plotly.js: "npm:^3.3.1"
@@ -4676,6 +4677,13 @@ __metadata:
   version: 1.1.0
   resolution: "grid-index@npm:1.1.0"
   checksum: 10c0/0ba2a622a52badc86642a002abee79b48c207092347e869528253e634573b9b55494db649fbd1779122d797aaa3b59e284023a96a7a5c666c7375f0e320f8f57
+  languageName: node
+  linkType: hard
+
+"gsap@npm:^3.15.0":
+  version: 3.15.0
+  resolution: "gsap@npm:3.15.0"
+  checksum: 10c0/5d86de72cb0bd6b20502c34c329a83a7d679979731bb465164407b7a5225aa61d612beee740eea36258622897c116cd2ca35320d530b7cf68bad62522361fcf7
   languageName: node
   linkType: hard
 

@@ -189,6 +189,35 @@
       <span>RY</span><input id="cam-ry" type="number" step="0.1" />
       <span>RZ</span><input id="cam-rz" type="number" step="0.1" />
     </div>
+    <hr style="border:0;border-top:1px solid rgba(90,70,50,.16);margin:12px 0" />
+    <label>笔记本屏幕（相对笔记本坐标）</label>
+    <div class="xyz">
+      <span>X</span><input id="sc-x" type="number" step="0.0001" />
+      <span>Y</span><input id="sc-y" type="number" step="0.0001" />
+      <span>Z</span><input id="sc-z" type="number" step="0.0001" />
+    </div>
+    <label>屏幕角度（度）</label>
+    <div class="xyz">
+      <span>RX</span><input id="sc-rx" type="number" step="0.5" />
+      <span>RY</span><input id="sc-ry" type="number" step="0.5" />
+      <span>RZ</span><input id="sc-rz" type="number" step="0.5" />
+    </div>
+    <label>屏幕宽度（世界单位）</label>
+    <div class="xyz">
+      <span>W</span><input id="sc-w" type="number" step="0.0005" />
+      <span></span><span></span>
+    </div>
+    <div class="row">
+      <button type="button" id="sc-toggle">显示屏幕</button>
+      <button type="button" id="sc-drag">拖动屏幕</button>
+    </div>
+    <div class="row">
+      <button type="button" id="sc-copy">复制屏幕参数</button>
+    </div>
+    <label class="toggle" style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-top:8px;color:#6b645a">
+      <input type="checkbox" id="sc-live" />
+      加载 github 页面
+    </label>
   </aside>
   <div id="editor">
     <h2 id="ed-title">编辑摆放</h2>
@@ -233,6 +262,7 @@
     import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
     import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
     import { TransformControls } from 'three/addons/controls/TransformControls.js';
+    import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 
     const LAYOUT_URL = './layout.json';
     const PAPER = new THREE.Color('#efe6d6');
@@ -259,6 +289,20 @@
     const FLOOR_LABELS = ['顶层', '2层', '3层', '4层', '底层'];
     const pinGroup = new THREE.Group();
     pinGroup.name = 'pins';
+
+    let laptopWrap = null;
+    let screenAnchor = null;
+    let cssRenderer = null;
+    let cssScene = null;
+    let cssScreen = null;
+    let screenIframe = null;
+    let screenVisible = false;
+    let screenDragging = false;
+    let fillingScreen = false;
+    const SCREEN_IFRAME_W = 900;
+    const SCREEN_IFRAME_H = 560;
+    const SCREEN = { x: 0, y: 0.0106, z: 0.0012, rx: 0, ry: 0, rz: 0, width: 0.022 };
+    const SC_FIELDS = ['sc-x', 'sc-y', 'sc-z', 'sc-rx', 'sc-ry', 'sc-rz', 'sc-w'];
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -322,6 +366,16 @@
       controls.enabled = !e.value;
     });
     transform.addEventListener('change', () => {
+      if (screenDragging && screenAnchor) {
+        SCREEN.x = screenAnchor.position.x;
+        SCREEN.y = screenAnchor.position.y;
+        SCREEN.z = screenAnchor.position.z;
+        SCREEN.rx = deg(screenAnchor.rotation.x);
+        SCREEN.ry = deg(screenAnchor.rotation.y);
+        SCREEN.rz = deg(screenAnchor.rotation.z);
+        syncScreenUI();
+        return;
+      }
       if (!activePin?.mesh) return;
       syncPinFromWrap(activePin);
       if (!fillingEditor) fillEditor(activePin);
@@ -888,6 +942,7 @@
       const width = place.width ?? item.width;
       const gltf = await loader.loadAsync(item.url);
       const wrap = new THREE.Group();
+      wrap.userData.kind = place.kind;
       wrap.position.set(place.x, place.y, place.z);
       wrap.rotation.set(place.rotX || 0, place.rotY || 0, place.rotZ || 0);
       const prop = gltf.scene;
@@ -895,6 +950,103 @@
       fitPropInWrap(prop, height, width);
       wrap.add(prop);
       scene.add(wrap);
+      return wrap;
+    }
+
+    // —— 笔记本屏幕（CSS3D iframe，与 createScene 对齐用） ——
+    function ensureScreen() {
+      if (!laptopWrap || screenAnchor) return;
+      cssRenderer = new CSS3DRenderer();
+      cssRenderer.domElement.style.position = 'absolute';
+      cssRenderer.domElement.style.inset = '0';
+      cssRenderer.domElement.style.pointerEvents = 'none';
+      document.body.appendChild(cssRenderer.domElement);
+      cssRenderer.setSize(innerWidth, innerHeight);
+      cssScene = new THREE.Scene();
+      screenIframe = document.createElement('iframe');
+      screenIframe.width = SCREEN_IFRAME_W;
+      screenIframe.height = SCREEN_IFRAME_H;
+      screenIframe.style.border = '0';
+      screenIframe.style.background = '#cfe4ff';
+      screenIframe.style.pointerEvents = 'none';
+      cssScreen = new CSS3DObject(screenIframe);
+      cssScene.add(cssScreen);
+      screenAnchor = new THREE.Object3D();
+      screenAnchor.name = 'screenAnchor';
+      laptopWrap.add(screenAnchor);
+      syncScreenUI();
+    }
+
+    // CSS3D 把世界坐标当 px 用；本场景是米级，直接当 px 会让屏幕贴在透视平面
+    // 前 0.02px，相机稍近就被剔除。把这一层和 CSS 相机整体放大 K 倍即可，视觉不变。
+    const CSS3D_SCALE = 8000;
+    const cssCamera = new THREE.PerspectiveCamera();
+    const _screenPos = new THREE.Vector3();
+    const _screenQuat = new THREE.Quaternion();
+    const _screenScaleTmp = new THREE.Vector3();
+
+    function screenFieldFocused() {
+      const el = document.activeElement;
+      return el && SC_FIELDS.includes(el.id);
+    }
+
+    function syncScreenUI() {
+      if (!screenAnchor || fillingScreen || screenFieldFocused()) return;
+      fillingScreen = true;
+      document.getElementById('sc-x').value = SCREEN.x.toFixed(5);
+      document.getElementById('sc-y').value = SCREEN.y.toFixed(5);
+      document.getElementById('sc-z').value = SCREEN.z.toFixed(5);
+      document.getElementById('sc-rx').value = SCREEN.rx.toFixed(2);
+      document.getElementById('sc-ry').value = SCREEN.ry.toFixed(2);
+      document.getElementById('sc-rz').value = SCREEN.rz.toFixed(2);
+      document.getElementById('sc-w').value = SCREEN.width.toFixed(5);
+      fillingScreen = false;
+    }
+
+    function syncCssScreen() {
+      if (!screenAnchor || !cssScreen) return;
+      screenAnchor.position.set(SCREEN.x, SCREEN.y, SCREEN.z);
+      screenAnchor.rotation.set(rad(SCREEN.rx), rad(SCREEN.ry), rad(SCREEN.rz));
+      screenAnchor.updateWorldMatrix(true, false);
+      screenAnchor.matrixWorld.decompose(_screenPos, _screenQuat, _screenScaleTmp);
+      cssScreen.position.copy(_screenPos).multiplyScalar(CSS3D_SCALE);
+      cssScreen.quaternion.copy(_screenQuat);
+      cssScreen.scale.setScalar((SCREEN.width / SCREEN_IFRAME_W) * CSS3D_SCALE);
+      cssScreen.visible = screenVisible;
+      if (screenIframe) screenIframe.style.outline = screenVisible ? '1px solid rgba(42,34,28,.45)' : 'none';
+    }
+
+    function syncCssCamera() {
+      cssCamera.position.copy(camera.position).multiplyScalar(CSS3D_SCALE);
+      cssCamera.quaternion.copy(camera.quaternion);
+      cssCamera.fov = camera.fov;
+      cssCamera.aspect = camera.aspect;
+      cssCamera.near = camera.near;
+      cssCamera.far = camera.far;
+      cssCamera.updateProjectionMatrix();
+      cssCamera.updateMatrixWorld();
+    }
+
+    function setScreenVisible(on) {
+      screenVisible = on;
+      const btn = document.getElementById('sc-toggle');
+      btn.textContent = on ? '隐藏屏幕' : '显示屏幕';
+      btn.classList.toggle('active', on);
+    }
+
+    function setScreenDragging(on) {
+      if (on && !screenAnchor) return;
+      screenDragging = on;
+      const btn = document.getElementById('sc-drag');
+      btn.textContent = on ? '停止拖动' : '拖动屏幕';
+      btn.classList.toggle('active', on);
+      if (on) {
+        if (activePin) detachEditor();
+        transform.attach(screenAnchor);
+        transform.setMode('translate');
+      } else if (transform.object === screenAnchor) {
+        transform.detach();
+      }
     }
 
     function applyPinTransform(pin) {
@@ -926,8 +1078,10 @@
       fit(root);
 
       for (const place of layoutData.placements || []) {
-        await spawnScenery(place);
+        const wrap = await spawnScenery(place);
+        if (place.kind === 'laptop') laptopWrap = wrap;
       }
+      ensureScreen();
 
       const heightInput = document.getElementById('floor-height');
       heightInput.value = layoutData.floorHeight ?? 0.155;
@@ -1068,6 +1222,12 @@
     function detachEditor() {
       transform.detach();
       activePin = null;
+      if (screenDragging) {
+        screenDragging = false;
+        const btn = document.getElementById('sc-drag');
+        btn.textContent = '拖动屏幕';
+        btn.classList.remove('active');
+      }
       document.getElementById('editor').classList.remove('open');
     }
 
@@ -1088,6 +1248,7 @@
     }
 
     function openEditor(pin) {
+      if (screenDragging) setScreenDragging(false);
       activePin = pin;
       document.getElementById('editor').classList.add('open');
       fillEditor(pin);
@@ -1348,6 +1509,39 @@
       setTimeout(() => { btn.textContent = prev; }, 1200);
     }
 
+    for (const id of SC_FIELDS) {
+      document.getElementById(id).addEventListener('input', () => {
+        if (fillingScreen) return;
+        SCREEN.x = Number(document.getElementById('sc-x').value) || 0;
+        SCREEN.y = Number(document.getElementById('sc-y').value) || 0;
+        SCREEN.z = Number(document.getElementById('sc-z').value) || 0;
+        SCREEN.rx = Number(document.getElementById('sc-rx').value) || 0;
+        SCREEN.ry = Number(document.getElementById('sc-ry').value) || 0;
+        SCREEN.rz = Number(document.getElementById('sc-rz').value) || 0;
+        SCREEN.width = Number(document.getElementById('sc-w').value) || 0.022;
+      });
+    }
+    document.getElementById('sc-toggle').addEventListener('click', () => {
+      setScreenVisible(!screenVisible);
+    });
+    document.getElementById('sc-drag').addEventListener('click', () => {
+      setScreenDragging(!screenDragging);
+    });
+    document.getElementById('sc-copy').addEventListener('click', (e) => {
+      copyText(e.currentTarget, JSON.stringify({
+        position: [SCREEN.x, SCREEN.y, SCREEN.z],
+        rotationDeg: [SCREEN.rx, SCREEN.ry, SCREEN.rz],
+        screenWidth: SCREEN.width,
+        screenScale: SCREEN.width / SCREEN_IFRAME_W,
+      }, null, 2));
+    });
+    document.getElementById('sc-live').addEventListener('change', (e) => {
+      if (!screenIframe) return;
+      if (e.target.checked && !screenIframe.src) {
+        screenIframe.src = 'https://bysq.top/gh-profile/';
+      }
+    });
+
     document.getElementById('copy-pins').addEventListener('click', (e) => copyText(e.currentTarget, pinsJson()));
     document.getElementById('copy-camera').addEventListener('click', (e) => {
       copyText(e.currentTarget, JSON.stringify(cameraSnapshot(), null, 2));
@@ -1361,6 +1555,7 @@
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
+      if (cssRenderer) cssRenderer.setSize(innerWidth, innerHeight);
       composer.setSize(innerWidth, innerHeight);
       resizeBuffers();
     });
@@ -1427,6 +1622,11 @@
       sketch.uniforms.tNormal.value = normalRT.texture;
       sketch.uniforms.tDepth.value = depthRT.texture;
       composer.render();
+      if (cssRenderer) {
+        syncCssCamera();
+        syncCssScreen();
+        cssRenderer.render(cssScene, cssCamera);
+      }
       projectPins();
       fillCamPanel();
     }
