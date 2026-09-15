@@ -164,20 +164,19 @@ export const skyShader = {
       }
 
       col = drawBody(col, dir, sd, sunSize, sunFill, ink);
-      // 月亮圈夜里反相成亮圈，不然在深蓝天上隐形
-      vec3 ringN = mix(ink, vec3(1.0) - ink, night);
-      col = drawBody(col, dir, md, sunSize * 0.85, vec3(0.94, 0.91, 0.85), ringN);
 
-      // 月亮环形山：盘内局部坐标画两道弧，不然分不清是月亮还是第二个太阳
+      // 月牙：一个大圆减去一个偏移圆。两个距离场取 max 就是月牙轮廓，
+      // 比画圆盘再补环形山更准，也少一段代码（lp 是盘内坐标，|lp|<1 为盘内）
       float mr = max(sunSize * 0.85, 0.004) * 0.5;
       float mang = acos(clamp(dot(dir, md), -1.0, 1.0));
-      if (mang < mr) {
+      float pw = max(fwidth(mang), 0.00012) / mr; // 一个像素（在均匀控制流里求导）
+      if (mang < mr * 1.4) {
         vec3 mu = normalize(cross(axis, md));
         vec3 mv = cross(md, mu);
         vec2 lp = vec2(dot(dir, mu), dot(dir, mv)) / mr;
-        float crater = smoothstep(0.06, 0.0, abs(length(lp - vec2(0.32, 0.18)) - 0.22))
-                     + smoothstep(0.06, 0.0, abs(length(lp - vec2(-0.3, -0.32)) - 0.15));
-        col = mix(col, ringN, clamp(crater, 0.0, 1.0) * 0.55);
+        float body = max(length(lp) - 1.0, 0.82 - length(lp - vec2(0.36, 0.0)));
+        col = mix(col, vec3(0.94, 0.91, 0.85), 1.0 - smoothstep(-pw, pw, body));
+        col = mix(col, vec3(0.6, 0.55, 0.47), 1.0 - smoothstep(pw, pw * 2.0, abs(body)));
       }
 
       gl_FragColor = vec4(col, 1.0);
