@@ -488,6 +488,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
   return {
     goto,
     setSway: cameraRig.setSway,
+    enableGyro: cameraRig.enableGyro,
     getState: cameraRig.getState,
     canvas: renderer.domElement,
     hitLaptop,

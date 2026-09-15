@@ -144,40 +144,8 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss">
-:root {
-  --c-brand: #b85c38;
-  --c-brand-light: #d4744e;
-  --c-text: #1a1a2e;
-  --c-text-light: #4a4a6a;
-  --c-text-lighter: #8a8aaa;
-  --c-bg: #fafafa;
-  --c-bg-light: #f3f3f3;
-  --c-bg-lighter: #ececec;
-  --c-border: #e6e6e6;
-  --c-border-dark: #d4d4d4;
-
-  --navbar-height: 3.6rem;
-}
-
-html.dark {
-  --c-brand: #d4744e;
-  --c-brand-light: #e89070;
-  --c-text: #f0ebe0;
-  --c-text-light: #b0a898;
-  --c-text-lighter: #706860;
-  --c-bg: #1e1a14;
-  /* 暗色背景：暖棕黑 */
-  --c-bg-light: #2a2419;
-  --c-bg-lighter: #3a2418;
-  --c-border: #2e2820;
-  --c-border-dark: #3e3628;
-  /* 回到顶部按钮暗色模式 */
-  --back-to-top-c-bg: var(--c-bg-light);
-  --back-to-top-c-accent-bg: var(--c-brand);
-  --back-to-top-c-shadow: rgba(0, 0, 0, 0.3);
-  --back-to-top-c-accent-hover: var(--c-brand-light);
-  --back-to-top-c-icon: var(--c-text);
-}
+/* 说明：所有颜色变量的定义已统一移到 docs/.vuepress/styles/palette.scss，
+   由 palette 插件自动注入。本文件只保留组件样式，颜色一律用 var(--c-xxx) 引用。 */
 
 body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
@@ -211,7 +179,7 @@ a {
       border-color: var(--c-brand);
       background-color: var(--c-bg);
       outline: none;
-      box-shadow: 0 0 0 1px var(--c-brand-light, #f59e0b33);
+      box-shadow: 0 0 0 1px var(--c-brand-light);
     }
   }
 
@@ -233,7 +201,7 @@ a {
         background-color: var(--c-brand);
 
         a {
-          color: #fff;
+          color: var(--c-brand-contrast);
           background: none;
         }
       }
@@ -300,21 +268,21 @@ html.dark .search-box {
   left: 0;
   right: 0;
   height: var(--navbar-height);
-  background-color: rgba(255, 255, 255, 0.72);
+  background-color: var(--c-navbar-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-sizing: border-box;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--c-navbar-border);
   transition: background-color 0.3s, border-color 0.3s, transform 0.3s ease;
 
   .is-home & {
-    background-color: rgba(255, 255, 255, 0.55);
+    background-color: var(--c-navbar-bg);
     border-bottom-color: transparent;
   }
 
   :global(html.dark) & {
-    background-color: rgba(30, 26, 20, 0.72);
-    border-bottom-color: rgba(255, 255, 255, 0.06);
+    background-color: var(--c-navbar-bg);
+    border-bottom-color: var(--c-navbar-border);
   }
 
   &-hidden {
@@ -408,7 +376,7 @@ html.dark .search-box {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--c-mask);
   z-index: 19;
   display: flex;
   justify-content: center;
@@ -420,7 +388,7 @@ html.dark .search-box {
     border-radius: 8px;
     padding: 1rem;
     min-width: 200px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px var(--c-shadow);
   }
 }
 

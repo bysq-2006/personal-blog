@@ -5,7 +5,6 @@ import { viteBundler } from '@vuepress/bundler-vite'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import customTheme from './theme/index.js'
-import { copyCodePlugin } from '@vuepress/plugin-copy-code'
 import markdownItKatex from '@iktakahiro/markdown-it-katex'
 
 export default defineUserConfig({
@@ -34,7 +33,9 @@ export default defineUserConfig({
   },
 
   plugins: [
-    copyCodePlugin(),
+    // copyCodePlugin 由 defaultTheme() 内置注册，这里不要再注册一次，
+    // 否则会触发 "plugin @vuepress/plugin-copy-code has been used multiple times"。
+    // 需要自定义时改用 theme 的 plugins 选项：customTheme({ plugins: { copyCode: {...} } })
     searchPlugin({
       locales: {
         '/': {
@@ -104,7 +105,7 @@ export default defineUserConfig({
             title: 'projects',
             sidebar: false,
           }),
-          layout: 'project', // 指定 project.vue 作为布局
+          layout: 'project', // 指定 Project.vue 作为布局
           path: '/projects/', // 访问路径为 /projects/
         }
       ],

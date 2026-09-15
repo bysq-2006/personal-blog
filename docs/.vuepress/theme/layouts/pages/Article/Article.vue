@@ -169,7 +169,7 @@ watch(currentCategory, updateIndicator)
   &.active-state {
     background-color: transparent;
     border-color: transparent;
-    color: #fff;
+    color: var(--c-brand-contrast);
   }
 
   .count {
@@ -186,8 +186,8 @@ watch(currentCategory, updateIndicator)
   }
 
   &.active-state .count {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background-color: var(--c-brand-contrast-soft);
+    color: var(--c-brand-contrast);
   }
 }
 

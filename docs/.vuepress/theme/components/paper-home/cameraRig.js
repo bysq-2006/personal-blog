@@ -53,8 +53,9 @@ function dampVec3(current, target, vel, smoothTime, dt) {
 }
 
 /**
- * 对外只暴露 goto / setSway。
+ * 对外只暴露 goto / setSway / enableGyro。
  * 目标机位可瞬间替换；真实位姿平滑追目标；摇晃叠在看向点周围（与 paper-home 预览相同）。
+ * 摇晃输入：桌面用 pointermove，手机用陀螺仪（enableGyro）。
  */
 export function createCameraRig(camera, { states, initial = 'home', smoothTime = 0.3 } = {}) {
   const poses = {}
@@ -84,6 +85,41 @@ export function createCameraRig(camera, { states, initial = 'home', smoothTime =
   const sway = { x: 0, y: 0 }
   const SWAY_AMP = 0.012
 
+  // 手机陀螺仪：把设备倾斜量当作鼠标坐标，桌面不会派发 deviceorientation，等于空转
+  // 方向若感觉反了，把下面两行的符号对调即可（±25 是灵敏度，越小越灵敏）
+  let gyroOn = false
+  let gyroBase = null
+  function onOrientation(e) {
+    if (e.gamma == null || e.beta == null) return
+    if (gyroBase === null) gyroBase = e.beta // 以首次读数作为「正对屏幕」的基准
+    mouse.x = MathUtils.clamp(e.gamma / 25, -1, 1)
+    mouse.y = MathUtils.clamp((gyroBase - e.beta) / 25, -1, 1)
+  }
+
+  function enableGyro() {
+    if (gyroOn || typeof DeviceOrientationEvent === 'undefined') return false
+    const start = () => {
+      if (gyroOn) return
+      gyroOn = true
+      addEventListener('deviceorientation', onOrientation, { passive: true })
+    }
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ 必须在用户手势里申请，非手势调用会抛错 → 留给手势里再调一次
+      try {
+        DeviceOrientationEvent.requestPermission()
+          .then((res) => {
+            if (res === 'granted') start()
+          })
+          .catch(() => {})
+      } catch {
+        /* 等用户手势 */
+      }
+    } else {
+      start()
+    }
+    return true
+  }
+
   camera.position.copy(real.position)
   camera.lookAt(real.lookAt)
 
@@ -102,6 +138,7 @@ export function createCameraRig(camera, { states, initial = 'home', smoothTime =
   }
 
   function onPointerMove(e) {
+    if (e.pointerType === 'touch' && gyroOn) return // 陀螺仪生效时，手指拖动不再抢镜
     mouse.x = (e.clientX / innerWidth) * 2 - 1
     mouse.y = (e.clientY / innerHeight) * 2 - 1
   }
@@ -143,14 +180,17 @@ export function createCameraRig(camera, { states, initial = 'home', smoothTime =
   }
   raf = requestAnimationFrame(tick)
   addEventListener('pointermove', onPointerMove, { passive: true })
+  enableGyro() // 安卓立即生效；iOS 静默失败，等 PaperHome 里的手势再调一次
 
   return {
     goto,
     setSway,
+    enableGyro,
     getState: () => state,
     dispose() {
       cancelAnimationFrame(raf)
       removeEventListener('pointermove', onPointerMove)
+      removeEventListener('deviceorientation', onOrientation)
     },
   }
 }

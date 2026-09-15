@@ -318,7 +318,7 @@ onMounted(async () => {
 
   &:hover {
     border-color: var(--c-text-light);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px var(--c-shadow);
   }
 
   .card-top {

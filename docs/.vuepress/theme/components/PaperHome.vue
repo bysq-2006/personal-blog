@@ -53,6 +53,21 @@ const onWheel = (e) => {
   else if (e.deltaY < 0 && i > 0) go(VIEW_ORDER[i - 1], -1)
 }
 
+// 触屏上下滑动换算成滚轮（上滑为正，与 deltaY 同号）
+let touchY = 0
+const SWIPE_MIN = 45
+
+const onTouchStart = (e) => {
+  touchY = e.touches[0].clientY
+  api?.enableGyro() // iOS 必须在用户手势里授权；已授权/已生效时是空操作
+}
+
+const onTouchEnd = (e) => {
+  const dy = touchY - e.changedTouches[0].clientY
+  if (Math.abs(dy) < SWIPE_MIN) return
+  onWheel({ deltaY: dy })
+}
+
 const onPointerDown = (e) => {
   if (e.button === 0) pointer = { x: e.clientX, y: e.clientY }
 }
@@ -91,12 +106,16 @@ onMounted(async () => {
   })
   const canvas = api.canvas
   host.value.addEventListener('wheel', onWheel, { passive: true })
+  host.value.addEventListener('touchstart', onTouchStart, { passive: true })
+  host.value.addEventListener('touchend', onTouchEnd, { passive: true })
   canvas.addEventListener('pointerdown', onPointerDown)
   canvas.addEventListener('pointerup', onPointerUp)
 })
 
 onUnmounted(() => {
   host.value?.removeEventListener('wheel', onWheel)
+  host.value?.removeEventListener('touchstart', onTouchStart)
+  host.value?.removeEventListener('touchend', onTouchEnd)
   api?.canvas?.removeEventListener('pointerdown', onPointerDown)
   api?.canvas?.removeEventListener('pointerup', onPointerUp)
   api?.dispose()
