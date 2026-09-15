@@ -171,8 +171,9 @@ export const skyShader = {
       float mang = acos(clamp(dot(dir, md), -1.0, 1.0));
       float pw = max(fwidth(mang), 0.00012) / mr; // 一个像素（在均匀控制流里求导）
       if (mang < mr * 1.4) {
-        vec3 mu = normalize(cross(axis, md));
-        vec3 mv = cross(md, mu);
+        // 盘内坐标系：mu = 屏幕右（相机大致水平朝 -z），咬口沿 mu 偏 → 月牙朝右开口
+        vec3 mu = normalize(cross(md, vec3(0.0, 1.0, 0.0)));
+        vec3 mv = cross(mu, md);
         vec2 lp = vec2(dot(dir, mu), dot(dir, mv)) / mr;
         float body = max(length(lp) - 1.0, 0.82 - length(lp - vec2(0.36, 0.0)));
         col = mix(col, vec3(0.94, 0.91, 0.85), 1.0 - smoothstep(-pw, pw, body));
