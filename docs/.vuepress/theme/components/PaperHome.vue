@@ -28,6 +28,7 @@ const atGithub = ref(false)
 let api = null
 let lastView = 'home'
 let pointer = null
+let themeObs = null
 
 const go = (name, dir = 0) => {
   api.goto(name, dir)
@@ -110,9 +111,15 @@ onMounted(async () => {
   host.value.addEventListener('touchend', onTouchEnd, { passive: true })
   canvas.addEventListener('pointerdown', onPointerDown)
   canvas.addEventListener('pointerup', onPointerUp)
+  // 跟随站点主题切夜景：已是暗色则直接到位（不播动画），之后随切换缓动
+  const isDark = () => document.documentElement.classList.contains('dark')
+  if (isDark()) api.setNight(true, true)
+  themeObs = new MutationObserver(() => api?.setNight(isDark()))
+  themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
 
 onUnmounted(() => {
+  themeObs?.disconnect()
   host.value?.removeEventListener('wheel', onWheel)
   host.value?.removeEventListener('touchstart', onTouchStart)
   host.value?.removeEventListener('touchend', onTouchEnd)

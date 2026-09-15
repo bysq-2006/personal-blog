@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
@@ -74,6 +75,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
       glintColor: { value: new THREE.Color('#fff8ee') },
       sunDir: { value: SUN_DIR },
       coastZ: { value: COAST_LINE_Z },
+      night: { value: 0 },
     },
     vertexShader: waterShader.vertex,
     fragmentShader: waterShader.fragment,
@@ -100,6 +102,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
       skyMid: { value: new THREE.Color('#fbe9d1') },
       sunFill: { value: new THREE.Color('#fef1e0') },
       ink: { value: new THREE.Color('#3a342e') },
+      night: { value: 0 },
     },
     vertexShader: skyShader.vertex,
     fragmentShader: skyShader.fragment,
@@ -239,6 +242,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
   const homeCamPos = new THREE.Vector3().fromArray(layout.homeCamera.position)
   const critterVideos = []
   const critterTextures = []
+  const critterMeshes = []
   for (const critter of CRITTERS) {
     if (!critter.url) continue
     const video = document.createElement('video')
@@ -260,12 +264,32 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     const planeH = critter.w / aspect
     const geometry = new THREE.PlaneGeometry(critter.w, planeH)
     geometry.translate(0, planeH / 2, 0) // 以底边中心为锚点
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-      map: texture,
+    const mesh = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
       depthTest: false,
       side: THREE.DoubleSide,
+      uniforms: { map: { value: texture }, night: { value: 0 } },
+      vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+      `,
+      fragmentShader: /* glsl */`
+        uniform sampler2D map;
+        uniform float night;
+        varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D(map, vUv);
+          // sRGB 空间反相：身体奶油色变黑，墨色线条变白
+          vec3 s = clamp(pow(max(c.rgb, vec3(0.0)), vec3(1.0 / 2.2)), 0.0, 1.0);
+          vec3 inv = pow(vec3(1.0) - s, vec3(2.2));
+          // 暗部压成中性黑（去蓝味），线条保持亮
+          float invY = dot(inv, vec3(0.299, 0.587, 0.114));
+          inv = mix(vec3(invY), inv, smoothstep(0.02, 0.25, invY));
+          c.rgb = mix(c.rgb, inv, night);
+          gl_FragColor = c;
+        }
+      `,
     }))
     mesh.position.set(critter.pos.x, critter.pos.y, critter.pos.z)
     const dir = new THREE.Vector3().subVectors(homeCamPos, mesh.position)
@@ -276,6 +300,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     play()
     critterVideos.push(video)
     critterTextures.push(texture)
+    critterMeshes.push(mesh)
   }
 
   const raycaster = new THREE.Raycaster()
@@ -485,10 +510,36 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     text.showText(name, dir)
   }
 
+  // —— 夜景：单个 night 标量(0..1) 驱动一切，GSAP 缓动，日月/天空/调色同步变化 ——
+  const nightState = { value: 0 }
+  const applyNight = () => {
+    const n = nightState.value
+    skyMat.uniforms.night.value = n
+    waterMat.uniforms.night.value = n
+    sketch.uniforms.night.value = n
+    // 猫/鸟视频在后处理之后渲染，吃不到后处理反相，在自己的 shader 里反相
+    for (const m of critterMeshes) m.material.uniforms.night.value = n
+  }
+  const setNight = (on, instant = false) => {
+    gsap.killTweensOf(nightState)
+    if (instant) {
+      nightState.value = on ? 1 : 0
+      applyNight()
+      return
+    }
+    gsap.to(nightState, {
+      value: on ? 1 : 0,
+      duration: 0.8,
+      ease: 'power2.inOut',
+      onUpdate: applyNight,
+    })
+  }
+
   return {
     goto,
     setSway: cameraRig.setSway,
     enableGyro: cameraRig.enableGyro,
+    setNight,
     getState: cameraRig.getState,
     canvas: renderer.domElement,
     hitLaptop,
@@ -496,6 +547,7 @@ export async function createScene(el, { layout, buildingUrl, catalogUrls, sprite
     dispose() {
       cancelAnimationFrame(raf)
       ro.disconnect()
+      gsap.killTweensOf(nightState)
       cameraRig.dispose()
       composer.dispose()
       normalRT.dispose()

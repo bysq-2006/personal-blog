@@ -17,10 +17,17 @@ export const waterShader = {
     uniform vec3 glintColor;
     uniform vec3 sunDir;
     uniform float coastZ;
+    uniform float night;
     varying vec3 vWorldPos;
 
     float hash(float n) {
       return fract(sin(n * 127.1) * 43758.5453);
+    }
+
+    // 线性空间直接反相会让奶油色变成中灰蓝；转回 sRGB 再反才是近黑
+    vec3 invertSRGB(vec3 c) {
+      vec3 s = clamp(pow(max(c, vec3(0.0)), vec3(1.0 / 2.2)), 0.0, 1.0);
+      return pow(vec3(1.0) - s, vec3(2.2));
     }
 
     float layer(float z, float x, float t, float freq, float speed, float thresh, float width) {
@@ -83,8 +90,11 @@ export const waterShader = {
       float shoreFade = smoothstep(coastZ - 1.8, coastZ + 0.9, vWorldPos.z);
       lines *= nearFade * shoreFade;
       float glint = sunGlints(xz, t) * nearFade * shoreFade;
-      vec3 col = mix(waterColor, lineColor, lines * 0.78);
-      col = mix(col, glintColor, glint * 0.92);
+      // 水体随夜反相（sRGB 空间）；碎金保留原样（月亮也发光），夜里只是淡一点
+      vec3 wc = mix(waterColor, invertSRGB(waterColor), night);
+      vec3 lc = mix(lineColor, invertSRGB(lineColor), night);
+      vec3 col = mix(wc, lc, lines * 0.78);
+      col = mix(col, glintColor, glint * mix(0.92, 0.5, night));
       float alpha = smoothstep(coastZ - 2.0, coastZ + 0.35, vWorldPos.z);
       gl_FragColor = vec4(col, alpha);
     }
@@ -92,6 +102,8 @@ export const waterShader = {
 }
 
 // —— 天空与太阳着色器 ——
+// 夜景：night=0 白天，1 黑夜。月亮在太阳正对面（-sunDir），随 night 绕东西轴转 180°，
+// 日落月升互换位置；天空反相、星空淡入，全部由同一个 night 驱动（GSAP 缓动）。
 export const skyShader = {
   vertex: /* glsl */`
     varying vec3 vDir;
@@ -110,21 +122,64 @@ export const skyShader = {
     uniform vec3 skyMid;
     uniform vec3 sunFill;
     uniform vec3 ink;
+    uniform float night;
     varying vec3 vDir;
     varying float vScreenY;
-    void main() {
-      vec3 dir = normalize(vDir);
-      float h = clamp(vScreenY, 0.0, 1.0);
-      vec3 sky = mix(skyMid, skyTop, smoothstep(0.22, 0.88, h));
-      float ang = acos(clamp(dot(dir, normalize(sunDir)), -1.0, 1.0));
-      float r = max(sunSize, 0.004) * 0.5;
+
+    vec3 rotAxis(vec3 v, vec3 k, float a) {
+      float c = cos(a), s = sin(a);
+      return v * c + cross(k, v) * s + k * dot(k, v) * (1.0 - c);
+    }
+
+    // 手绘天体：奶油盘 + 墨线圈（太阳、月亮同一画法）
+    vec3 drawBody(vec3 col, vec3 dir, vec3 bodyDir, float size, vec3 fillCol, vec3 ringCol) {
+      float ang = acos(clamp(dot(dir, bodyDir), -1.0, 1.0));
+      float r = max(size, 0.004) * 0.5;
       float aa = max(fwidth(ang) * 0.65, 0.00012);
       float ringW = max(fwidth(ang) * 0.55, 0.00018);
       float fill = 1.0 - smoothstep(r - aa, r + aa, ang);
       float ring = smoothstep(r - ringW - aa, r - ringW, ang)
                  * (1.0 - smoothstep(r, r + aa, ang));
-      vec3 col = mix(sky, sunFill, fill);
-      col = mix(col, ink, ring);
+      return mix(mix(col, fillCol, fill), ringCol, ring);
+    }
+
+    void main() {
+      vec3 dir = normalize(vDir);
+      float h = clamp(vScreenY, 0.0, 1.0);
+      vec3 sky = mix(skyMid, skyTop, smoothstep(0.22, 0.88, h));
+      vec3 col = mix(sky, vec3(0.0), night); // 夜里纯黑，不要渐变
+
+      // 东西轴垂直于 sunDir，转 180° 太阳正好落到月亮位
+      vec3 s = normalize(sunDir);
+      vec3 axis = normalize(vec3(-s.z, 0.0, s.x));
+      float a = night * 3.14159265;
+      vec3 sd = rotAxis(s, axis, a);
+      vec3 md = -sd;
+
+      // 星空：随夜淡入（星点核要够 2px 才看得见）
+      vec3 cell = floor(dir * 220.0);
+      if (night > 0.01 && fract(sin(dot(cell, vec3(12.9898, 78.233, 37.719))) * 43758.5453) > 0.996) {
+        float d = length(fract(dir * 220.0) - 0.5);
+        col += vec3(1.0, 0.97, 0.9) * smoothstep(0.3, 0.05, d) * night;
+      }
+
+      col = drawBody(col, dir, sd, sunSize, sunFill, ink);
+      // 月亮圈夜里反相成亮圈，不然在深蓝天上隐形
+      vec3 ringN = mix(ink, vec3(1.0) - ink, night);
+      col = drawBody(col, dir, md, sunSize * 0.85, vec3(0.94, 0.91, 0.85), ringN);
+
+      // 月亮环形山：盘内局部坐标画两道弧，不然分不清是月亮还是第二个太阳
+      float mr = max(sunSize * 0.85, 0.004) * 0.5;
+      float mang = acos(clamp(dot(dir, md), -1.0, 1.0));
+      if (mang < mr) {
+        vec3 mu = normalize(cross(axis, md));
+        vec3 mv = cross(md, mu);
+        vec2 lp = vec2(dot(dir, mu), dot(dir, mv)) / mr;
+        float crater = smoothstep(0.06, 0.0, abs(length(lp - vec2(0.32, 0.18)) - 0.22))
+                     + smoothstep(0.06, 0.0, abs(length(lp - vec2(-0.3, -0.32)) - 0.15));
+        col = mix(col, ringN, clamp(crater, 0.0, 1.0) * 0.55);
+      }
+
       gl_FragColor = vec4(col, 1.0);
     }
   `,
@@ -143,6 +198,7 @@ export function paperSketchShader(THREELib = THREE) {
       skyTop: { value: new THREELib.Color('#ddded9') },
       skyMid: { value: new THREELib.Color('#fbe9d1') },
       skyBot: { value: new THREELib.Color('#fbe9d1') },
+      night: { value: 0 },
     },
     vertexShader: /* glsl */`
       varying vec2 vUv;
@@ -159,12 +215,19 @@ export function paperSketchShader(THREELib = THREE) {
       uniform vec2 resolution;
       uniform vec3 paper;
       uniform vec3 ink;
+      uniform float night;
       varying vec2 vUv;
 
       float hash(vec2 p) {
         p = fract(p * vec2(123.34, 456.21));
         p += dot(p, p + 45.32);
         return fract(p.x * p.y);
+      }
+
+      // 线性空间直接反相会让奶油色变成中灰蓝；转回 sRGB 再反才是近黑
+      vec3 invertSRGB(vec3 c) {
+        vec3 s = clamp(pow(max(c, vec3(0.0)), vec3(1.0 / 2.2)), 0.0, 1.0);
+        return pow(vec3(1.0) - s, vec3(2.2));
       }
 
       float grain(vec2 uv) {
@@ -237,6 +300,12 @@ export function paperSketchShader(THREELib = THREE) {
         skyCol += vec3(0.03, 0.015, 0.0) * (g - 0.45);
         vec3 col = mix(fill, skyCol, skyMask);
         col = mix(col, ink, max(screenLine, meshLine) * (1.0 - skyMask));
+        // 夜景（方案 A 纯反相，sRGB 空间）：只反相实体部分，天空已由 skyShader 自己夜化
+        vec3 inv = invertSRGB(col);
+        // 反相带蓝味（像深海色）：暗部压成中性黑，亮部线条保持原样
+        float invY = dot(inv, vec3(0.299, 0.587, 0.114));
+        inv = mix(vec3(invY), inv, smoothstep(0.02, 0.25, invY));
+        col = mix(col, inv, night * solid);
         gl_FragColor = vec4(col, 1.0);
       }
     `,

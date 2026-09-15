@@ -104,34 +104,35 @@
    暗色模式
    -------------------------------------------------------------------------- */
 html.dark {
-  /* 品牌色 —— 在深背景上适当提亮 */
-  --c-brand: #d09a6d;
-  --c-brand-light: #e0b189;
-  --c-brand-dark: #b07d4e;
+  /* 品牌色 —— 提亮但压低饱和度（S 51→44），避免在深底上发闷发「尿黄」 */
+  --c-brand: #c99a73;
+  --c-brand-light: #dbb594;
+  --c-brand-dark: #a27149;
   /* 暗色下品牌色偏浅，上面压白字几乎看不清，改用深色文字 */
-  --c-brand-contrast: #211d18;
-  --c-brand-contrast-soft: rgba(33, 29, 24, 0.18);
+  --c-brand-contrast: #1f1712;
+  --c-brand-contrast-soft: rgba(31, 23, 18, 0.18);
 
-  /* 文字 */
-  --c-text: #f2ece1;
-  --c-text-light: #b5ac9e;
-  --c-text-lighter: #7a7268;
-  --c-text-quote: #a79e90;
+  /* 文字 —— 正文降饱和（S 40→18），奶油色在深底上会显得脏 */
+  --c-text: #e8e5de;
+  --c-text-light: #aca395;
+  --c-text-lighter: #786f64;
+  --c-text-quote: #918778;
 
-  /* 背景 —— 暖棕黑 */
-  --c-bg: #1c1916;
-  --c-bg-light: #262220;
-  --c-bg-lighter: #332c25;
+  /* 背景 —— 明度阶梯拉开（L 7→13→20），越高处饱和度越低，
+     否则卡片/代码块/背景糊成一团（旧版分离度仅 1.11~1.15） */
+  --c-bg: #141210;
+  --c-bg-light: #25211d;
+  --c-bg-lighter: #38332e;
 
-  /* 边框 */
-  --c-border: #322c25;
-  --c-border-dark: #453b31;
+  /* 边框 —— 拉到能在 bg-lighter 上看清的程度（旧版 1.00 完全隐形） */
+  --c-border: #4d443d;
+  --c-border-dark: #675b51;
 
-  /* 半透明与阴影 */
-  --c-navbar-bg: rgba(28, 25, 22, 0.72);
-  --c-navbar-border: rgba(255, 255, 255, 0.06);
-  --c-mask: rgba(0, 0, 0, 0.5);
-  --c-shadow: rgba(0, 0, 0, 0.4);
+  /* 半透明与阴影 —— 第一项与 --c-bg 的 rgb 保持一致 */
+  --c-navbar-bg: rgba(20, 18, 16, 0.72);
+  --c-navbar-border: rgba(255, 255, 255, 0.07);
+  --c-mask: rgba(0, 0, 0, 0.55);
+  --c-shadow: rgba(0, 0, 0, 0.45);
 
   /* ---- 桥接 VuePress 默认主题 ----
      这些必须在 html.dark 里再写一遍，不能只依赖上面的 :root：
@@ -142,7 +143,7 @@ html.dark {
   --vp-c-accent-bg: var(--c-brand);
   --vp-c-accent-hover: var(--c-brand-light);
   --vp-c-accent-text: var(--c-brand-contrast);
-  --vp-c-accent-soft: rgba(208, 154, 109, 0.16);
+  --vp-c-accent-soft: rgba(201, 154, 115, 0.16);
 
   --vp-c-bg: var(--c-bg);
   --vp-c-bg-alt: var(--c-bg-light);
